@@ -89,6 +89,7 @@
   --secondary-foreground: var(--foreground);
   --accent-foreground: var(--foreground);
   --destructive-foreground: var(--primary-foreground);
+  --sidebar-background: var(--sidebar);
   --sidebar-foreground: var(--foreground);
   --sidebar-primary: var(--primary);
   --sidebar-primary-foreground: var(--primary-foreground);
@@ -108,32 +109,37 @@
 }
 
 :root.dark {
-  --background: #171A1F;
-  --foreground: #E5E9EE;
-  --sidebar: #1C2127;
-  --card: #1E242B;
-  --popover: #242B33;
-  --secondary: #282E36;
-  --muted: #252B33;
-  --muted-foreground: #9AA4AF;
-  --accent: #2A3641;
-  --border: #303842;
-  --input: #343D47;
-  --primary: #789AB7;
-  --primary-hover: #8AAAC4;
-  --primary-foreground: #111820;
-  --ring: var(--primary);
-  --scrollbar-thumb: #6B7784;
-  --overlay: #111820A6;
+  --background: #181818;
+  --foreground: #E6E6E6;
+  --sidebar: #1D1D1D;
+  --sidebar-foreground: #E0E0E0;
+  --card: #222222;
+  --popover: #292929;
+  --secondary: #303030;
+  --muted: #282828;
+  --muted-foreground: #A3A3A3;
+  --accent: #303030;
+  --accent-foreground: #EAEAEA;
+  --border: #383838;
+  --input: #404040;
+  --primary: #D0D0D0;
+  --primary-hover: #E0E0E0;
+  --primary-foreground: #181818;
+  --ring: #B8B8B8;
+  --scrollbar-thumb: #777777;
+  --overlay: #000000A6;
 
-  --success: #A0C5AF;
-  --success-muted: #24352E;
-  --warning: #D5B781;
-  --warning-muted: #393228;
-  --destructive: #DFA4A4;
-  --destructive-muted: #3C2D32;
-  --info: #A0BED5;
-  --info-muted: #283643;
+  --success: #A5B9AD;
+  --success-muted: #28312C;
+  --warning: #C2B299;
+  --warning-muted: #34312B;
+  --destructive: #CAA8A8;
+  --destructive-muted: #362D2D;
+  --info: #A8B9C6;
+  --info-muted: #2B3035;
+  --chart-3: #848484;
+  --chart-4: #686868;
+  --chart-5: #4C4C4C;
   color-scheme: dark;
 }
 
@@ -145,6 +151,10 @@
     background-color: var(--background);
     accent-color: var(--primary);
     scrollbar-color: var(--scrollbar-thumb) transparent;
+  }
+  :root.dark ::selection {
+    background-color: var(--primary);
+    color: var(--primary-foreground);
   }
   a:focus-visible {
     outline: 2px solid var(--ring);
