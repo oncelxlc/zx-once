@@ -1,4 +1,3 @@
-import * as stylex from "@stylexjs/stylex";
 import { Settings } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useLocation } from "react-router";
@@ -8,7 +7,6 @@ import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupConte
 import type { RootState } from "../store";
 import { activeDestination, destinations, type NavId } from "./navigation";
 import { moveItem, resetNavigation, toggleHidden, togglePin } from "./preferencesSlice";
-import { shell } from "./shellStyles";
 
 function SidebarItem({ id, current, onNavigate }: { id: NavId; current: boolean; onNavigate: () => void }) {
   const dispatch = useDispatch();
@@ -16,7 +14,7 @@ function SidebarItem({ id, current, onNavigate }: { id: NavId; current: boolean;
   const compact = !isMobile && !open;
   const { pins, groups } = useSelector((state: RootState) => state.preferences);
   const { icon: Icon, label, to } = destinations[id];
-  return <SidebarMenuItem className={compact ? "mx-auto" : undefined}>
+  return <SidebarMenuItem>
     <ContextMenu>
       <ContextMenuTrigger>
         <SidebarMenuButton render={<Link to={to} />} isActive={current} tooltip={label}
@@ -39,8 +37,9 @@ function SidebarItem({ id, current, onNavigate }: { id: NavId; current: boolean;
 
 export function AppSidebar() {
   const { groups, pins, hidden } = useSelector((state: RootState) => state.preferences);
-  const { isMobile, open, setOpenMobile } = useSidebar();
+  const { isMobile, open, openMobile, setOpenMobile } = useSidebar();
   const compact = !isMobile && !open;
+  const toggleLabel = isMobile ? "关闭导航" : open ? "收起侧栏" : "展开侧栏";
   const { pathname, search } = useLocation();
   const visibleGroups = groups.filter(group => !group.hidden);
   const visible = visibleGroups.flatMap(group => group.items.filter(id => !hidden.includes(id)));
@@ -51,29 +50,23 @@ export function AppSidebar() {
 
   function renderGroup(id: string, title: string, items: NavId[]) {
     if (!items.length) return null;
-    return <SidebarGroup key={id} className={compact ? "items-center border-b border-sidebar-border" : undefined}>
-      {!compact && <SidebarGroupLabel>{title}</SidebarGroupLabel>}
+    return <SidebarGroup key={id} className="border-b border-transparent transition-colors duration-200 ease-linear group-data-[collapsible=icon]:border-sidebar-border motion-reduce:transition-none">
+      <SidebarGroupLabel aria-hidden={compact}>{title}</SidebarGroupLabel>
       <SidebarGroupContent><SidebarMenu>
         {items.map(item => <SidebarItem key={item} id={item} current={item === current} onNavigate={leave} />)}
       </SidebarMenu></SidebarGroupContent>
     </SidebarGroup>;
   }
   return <Sidebar collapsible="icon" className="bottom-7 h-auto">
-    <SidebarHeader {...stylex.props(shell.brand, compact && shell.brandRail)}>
-      <Link to="/" onClick={leave} aria-label="zx-once 总览" title={compact ? "zx-once 总览" : undefined} {...stylex.props(shell.brandLink)}>
-        <img src="/icon.png" width={32} height={32} alt="" />
-        {!compact && <span {...stylex.props(shell.brandCopy)}><strong {...stylex.props(shell.brandName)}>zx-once</strong>
-          <span {...stylex.props(shell.brandCaption)}>开发者工作台</span></span>}
-      </Link>
-      {!compact && <SidebarTrigger aria-label={isMobile ? "关闭导航" : "收起侧栏"} aria-expanded title={isMobile ? "关闭导航" : "收起侧栏"} />}
+    <SidebarHeader className="shrink-0 items-start">
+      <SidebarTrigger size="icon" aria-label={toggleLabel} title={toggleLabel} aria-expanded={isMobile ? openMobile : open} />
     </SidebarHeader>
     <SidebarContent role="navigation" aria-label="主导航" className="group-data-[collapsible=icon]:overflow-y-auto">
       {renderGroup("favorites", "收藏", favorites)}
       {visibleGroups.map(group => renderGroup(group.id, group.title, group.items.filter(id => visible.includes(id) && !favorites.includes(id))))}
     </SidebarContent>
     <SidebarFooter className="border-t border-sidebar-border">
-      {compact && <SidebarTrigger aria-label="展开侧栏" title="展开侧栏" aria-expanded={false} className="mx-auto" />}
-      <SidebarMenu><SidebarMenuItem className={compact ? "mx-auto" : undefined}>
+      <SidebarMenu><SidebarMenuItem>
         <SidebarMenuButton render={<Link to="/settings" />} isActive={settings} tooltip="设置"
           aria-label="设置" aria-current={settings ? "page" : undefined} onClick={leave}>
           <Settings aria-hidden="true" />{!compact && <span>设置</span>}

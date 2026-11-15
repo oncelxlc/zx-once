@@ -14,7 +14,7 @@ import { DetailPanelHost } from "./WorkbenchDialog";
 import { persistPreferences, setSidebar } from "./preferencesSlice";
 import { shell } from "./shellStyles";
 
-const sidebarSize = { "--sidebar-width": "232px", "--sidebar-width-icon": "64px", minHeight: 0 };
+const sidebarSize = { "--sidebar-width": "232px", minHeight: 0 };
 
 function watchWidth(update: () => void) {
   window.addEventListener("resize", update);
@@ -68,8 +68,7 @@ function Workspace({ wide }: { wide: boolean }) {
     <Button variant="outline" size="sm" className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50"
       onClick={() => content.current?.focus()}>跳到主内容</Button>
     {isMobile && <header {...stylex.props(shell.mobileBar)}>
-      <SidebarTrigger aria-label="打开导航" aria-expanded={openMobile} title="打开导航" />
-      <img src="/icon.png" width={24} height={24} alt="" /><strong>zx-once</strong>
+      <SidebarTrigger size="icon" aria-label="打开导航" aria-expanded={openMobile} title="打开导航" />
     </header>}
     <div className="flex min-h-0 flex-1">
       <DetailPanelHost.Provider value={wide ? detailHost : null}>

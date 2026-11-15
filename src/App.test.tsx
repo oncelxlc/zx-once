@@ -58,15 +58,25 @@ it("keeps the order and visibility of saved modules after removing shortcuts", a
   expect(editor.getByRole("checkbox", { name: "最近项目", checked: false })).toBeTruthy();
 });
 
-it("keeps navigation groups static and reaches recent projects from the collapsed sidebar", async () => {
+it("keeps the sidebar toggle in place and reaches recent projects from the collapsed sidebar", async () => {
   vi.stubGlobal("innerWidth", 1280);
   renderAt("#/");
   const nav = within(screen.getByRole("navigation", { name: "主导航" }));
-  expect(nav.getByText("工作台")).toBeTruthy();
+  const toggle = screen.getByRole("button", { name: "收起侧栏", expanded: true });
+  expect(toggle.closest("[data-slot=sidebar-header]")).toBeTruthy();
+  expect(screen.queryByRole("link", { name: "zx-once 总览" })).toBeNull();
+  const groupLabel = nav.getByText("工作台");
   expect(nav.queryByRole("button", { name: "工作台" })).toBeNull();
 
-  fireEvent.click(screen.getByRole("button", { name: "收起侧栏", expanded: true }));
-  expect(nav.queryByText("工作台")).toBeNull();
+  fireEvent.click(toggle);
+  expect(screen.getByRole("button", { name: "展开侧栏", expanded: false })).toBe(toggle);
+  expect(nav.getByText("工作台")).toBe(groupLabel);
+  expect(groupLabel.getAttribute("aria-hidden")).toBe("true");
+  fireEvent.click(toggle);
+  expect(groupLabel.getAttribute("aria-hidden")).toBe("false");
+  fireEvent.click(toggle);
+  expect(nav.getByText("工作台")).toBe(groupLabel);
+  expect(groupLabel.getAttribute("aria-hidden")).toBe("true");
   fireEvent.click(nav.getByRole("link", { name: "最近使用" }));
 
   await waitFor(() => expect(window.location.hash).toBe("#/?section=recent"));
@@ -74,8 +84,10 @@ it("keeps navigation groups static and reaches recent projects from the collapse
   const recent = screen.getByRole("region", { name: "最近项目" });
   expect(document.activeElement).toBe(recent.closest("[tabindex]"));
 
-  fireEvent.click(screen.getByRole("button", { name: "展开侧栏", expanded: false }));
-  expect(nav.getByText("工作台")).toBeTruthy();
+  fireEvent.click(toggle);
+  expect(screen.getByRole("button", { name: "收起侧栏", expanded: true })).toBe(toggle);
+  expect(nav.getByText("工作台")).toBe(groupLabel);
+  expect(groupLabel.getAttribute("aria-hidden")).toBe("false");
 });
 
 it("redirects an unknown hash route to the overview", async () => {

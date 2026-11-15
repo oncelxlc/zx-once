@@ -12,7 +12,7 @@
 
 ## 特殊
 
-- [界面主题与配色](special/design-system/README.md) — 深色石墨灰与浅色主题的变量、状态色和品牌色的使用范围，以及深色调整前后的总览截图。
+- [界面主题与配色](special/design-system/README.md) — 深色石墨灰与浅色主题的变量、语义状态色，以及深色调整前后的总览截图。
 - [Windows 通知与 MSIX 打包](special/windows-notifications.md) — 微信和 QQ 的窗口发现、提醒归属、授权条件与打包命令。
 - [灵动岛性能诊断](special/island-performance.md) — 原生窗口自检、渲染统计与性能采样条件。
 
