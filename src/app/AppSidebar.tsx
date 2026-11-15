@@ -1,12 +1,11 @@
 import { Settings, X } from "lucide-react";
-import { Fragment } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useLocation } from "react-router";
 import { Button } from "../components/ui/button";
 import { SheetClose } from "../components/ui/sheet";
 import { ContextMenu, ContextMenuContent, ContextMenuGroup, ContextMenuItem, ContextMenuTrigger } from "../components/ui/context-menu";
 import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent, SidebarGroupLabel,
-  SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarSeparator, useSidebar } from "../components/ui/sidebar";
+  SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from "../components/ui/sidebar";
 import type { RootState } from "../store";
 import { activeDestination, destinations, type NavId } from "./navigation";
 import { moveItem, resetNavigation, toggleHidden, togglePin } from "./preferencesSlice";
@@ -52,24 +51,20 @@ export function AppSidebar() {
 
   function renderGroup(id: string, title: string, items: NavId[]) {
     if (!items.length) return null;
-    return <Fragment key={id}>
-      <SidebarSeparator aria-hidden="true" className="first:hidden" />
-      <SidebarGroup>
-        <SidebarGroupLabel aria-hidden={compact}>{title}</SidebarGroupLabel>
-        <SidebarGroupContent><SidebarMenu>
-          {items.map(item => <SidebarItem key={item} id={item} current={item === current} onNavigate={leave} />)}
-        </SidebarMenu></SidebarGroupContent>
-      </SidebarGroup>
-    </Fragment>;
+    return <SidebarGroup key={id}>
+      <SidebarGroupLabel aria-hidden={compact}>{title}</SidebarGroupLabel>
+      <SidebarGroupContent><SidebarMenu>
+        {items.map(item => <SidebarItem key={item} id={item} current={item === current} onNavigate={leave} />)}
+      </SidebarMenu></SidebarGroupContent>
+    </SidebarGroup>;
   }
-  return <Sidebar collapsible="icon">
+  return <Sidebar collapsible="icon" className="group-data-[side=left]:border-r-0">
     {isMobile && <SheetClose render={<Button variant="ghost" size="icon" className="m-1 self-end" />}
       aria-label="关闭导航"><X aria-hidden="true" /></SheetClose>}
     <SidebarContent role="navigation" aria-label="主导航">
       {renderGroup("favorites", "收藏", favorites)}
       {visibleGroups.map(group => renderGroup(group.id, group.title, group.items.filter(id => visible.includes(id) && !favorites.includes(id))))}
     </SidebarContent>
-    <SidebarSeparator aria-hidden="true" />
     <SidebarFooter className="shrink-0">
       <SidebarMenu><SidebarMenuItem>
         <SidebarMenuButton render={<Link to="/settings" />} isActive={settings} tooltip="设置"
