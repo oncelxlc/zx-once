@@ -25,7 +25,9 @@ function isPreferences(value: unknown): value is Preferences {
     || !Array.isArray(value.groups) || !value.groups.every(isGroup)) return false;
   const groups = value.groups;
   const items = groups.flatMap(group => group.items);
-  return isIdList(items) && items.length === Object.keys(destinations).length
+  const count = Object.keys(destinations).length;
+  const predatesIsland = items.length === count - 1 && !items.includes("island");
+  return isIdList(items) && (items.length === count || predatesIsland)
     && new Set(groups.map(group => group.id)).size === groups.length;
 }
 
@@ -36,6 +38,10 @@ function load(): Preferences {
   }
   // Older preferences also stored a collapsed flag on each group.
   const groups = saved.groups.map(({ id, title, items, hidden }) => ({ id, title, items, hidden }));
+  if (!groups.some(group => group.items.includes("island"))) {
+    const workbench = groups.find(group => group.id === "workbench") ?? groups[0];
+    workbench.items.push("island");
+  }
   return { ...saved, groups };
 }
 

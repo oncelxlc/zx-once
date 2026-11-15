@@ -1,13 +1,14 @@
 import {
   Activity, BookMarked, Boxes, Cable, CircleDot, Clock3, Container, FolderKanban,
   FolderTree, GitBranch, GitPullRequest, HardDrive, LayoutDashboard, Network,
-  Hammer, Rocket, Server, Terminal, Wrench,
+  Hammer, PanelsTopLeft, Rocket, Server, Terminal, Wrench,
 } from "lucide-react";
 
 export const destinations = {
   overview: { label: "总览", to: "/", icon: LayoutDashboard },
   recent: { label: "最近使用", to: "/?section=recent", icon: Clock3 },
   activity: { label: "活动记录", to: "/?section=activity", icon: Activity },
+  island: { label: "灵动岛", to: "/island", icon: PanelsTopLeft },
   projects: { label: "项目", to: "/projects", icon: FolderKanban },
   git: { label: "Git 工作区", to: "/git", icon: GitBranch },
   environment: { label: "开发环境", to: "/environment", icon: Boxes },
@@ -46,7 +47,7 @@ export const defaults: Preferences = {
   theme: "system",
   sidebar: "auto",
   groups: [
-    { id: "workbench", title: "工作台", items: ["overview", "recent", "activity"], hidden: false },
+    { id: "workbench", title: "工作台", items: ["overview", "recent", "activity", "island"], hidden: false },
     { id: "local", title: "本地开发", items: ["projects", "git", "environment", "toolchain"], hidden: false },
     { id: "collaboration", title: "代码协作", items: ["github", "repositories", "prs", "issues"], hidden: false },
     { id: "remote", title: "远程基础设施", items: ["remote", "connections", "servers", "files", "terminal", "docker", "deployments"], hidden: false },

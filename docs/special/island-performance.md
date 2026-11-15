@@ -22,7 +22,7 @@ cargo run --locked --manifest-path src-tauri/Cargo.toml --example island_native_
 | `recoveries`、`lastRecoveryUs` | 图形设备恢复成功次数和最近一次恢复耗时，单位为微秒。 |
 | `lastApplyUs` | 最近一次应用渲染状态的宿主耗时，单位为微秒。显示器刷新间隔和输入到画面的延迟需要单独测量。 |
 
-命令返回「灵动岛窗口未启动」时，先在设置中启用或重启岛屿，再重新读取。[诊断命令](../../src-tauri/src/island/commands.rs) · [渲染计数实现](../../src-tauri/src/island/render/mod.rs)
+命令返回「灵动岛窗口未启动」时，从主导航打开「灵动岛」，在「总览」启用或重启岛体，再重新读取。[诊断命令](../../src-tauri/src/island/commands.rs) · [渲染计数实现](../../src-tauri/src/island/render/mod.rs)
 
 ## 进程与画面采样脚本
 

@@ -6,7 +6,6 @@ use tauri::WebviewWindowBuilder;
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub(crate) struct MainSnapshot {
     route: String,
-    dependencies_expanded: bool,
     #[serde(default, deserialize_with = "read_draft")]
     draft: Option<IslandConfig>,
 }
@@ -22,7 +21,6 @@ impl Default for MainSnapshot {
     fn default() -> Self {
         Self {
             route: "#/".into(),
-            dependencies_expanded: true,
             draft: None,
         }
     }
@@ -30,11 +28,11 @@ impl Default for MainSnapshot {
 
 impl MainSnapshot {
     fn normalize(&mut self) {
-        const SETTINGS: &str = "#/settings/island";
+        const SETTINGS: &str = "#/island";
         if self.route == SETTINGS {
             return;
         }
-        if let Some(group) = self.route.strip_prefix("#/settings/island?group=") {
+        if let Some(group) = self.route.strip_prefix("#/island?group=") {
             if matches!(
                 group,
                 "overview"
@@ -77,7 +75,7 @@ impl IslandManager {
         let id = self.main_window.capture_id;
         let worker = self.worker.clone();
         window.eval_with_callback(
-            "window.__zxMainSession ? {route: location.hash, dependenciesExpanded: window.__zxMainSession.dependenciesExpanded, draft: window.__zxMainSession.draft} : null",
+            "window.__zxMainSession ? {route: location.hash, draft: window.__zxMainSession.draft} : null",
             move |json| {
                 let _ = worker.post(move |manager| {
                     if id != manager.main_window.capture_id { return Ok(()); }
@@ -118,15 +116,15 @@ impl IslandManager {
         }
         let window = if let Some(window) = self.app.get_webview_window("main") {
             if settings {
-                state.snapshot.route = "#/settings/island".into();
+                state.snapshot.route = "#/island".into();
                 window
-                    .eval("location.hash='/settings/island'")
+                    .eval("location.hash='/island'")
                     .map_err(|e| e.to_string())?;
             }
             window
         } else {
             if settings {
-                state.snapshot.route = "#/settings/island".into();
+                state.snapshot.route = "#/island".into();
             }
             state.restoring = true;
             let config = self
@@ -156,16 +154,15 @@ mod tests {
     #[test]
     fn tray_snapshot_keeps_only_known_pages_and_settings_drafts() {
         let mut snapshot = MainSnapshot {
-            route: "#/settings/island?group=placement".into(),
-            dependencies_expanded: false,
+            route: "#/island?group=placement".into(),
             draft: Some(IslandConfig::default()),
         };
         snapshot.normalize();
-        assert_eq!(snapshot.route, "#/settings/island?group=placement");
+        assert_eq!(snapshot.route, "#/island?group=placement");
         assert!(snapshot.draft.is_some());
-        snapshot.route = "#/settings/island?group=notifications&extra=private".into();
+        snapshot.route = "#/island?group=notifications&extra=private".into();
         snapshot.normalize();
-        assert_eq!(snapshot.route, "#/settings/island");
+        assert_eq!(snapshot.route, "#/island");
         snapshot.route = "#/unknown?private".into();
         snapshot.normalize();
         assert_eq!(snapshot.route, "#/");
@@ -174,10 +171,10 @@ mod tests {
 
     #[test]
     fn incomplete_draft_does_not_prevent_route_recovery() {
-        let data = r##"{"route":"#/settings/island?group=placement","dependenciesExpanded":false,"draft":{"placement":{"offsetX":null}}}"##;
+        let data =
+            r##"{"route":"#/island?group=placement","draft":{"placement":{"offsetX":null}}}"##;
         let snapshot: MainSnapshot = serde_json::from_str(data).unwrap();
-        assert_eq!(snapshot.route, "#/settings/island?group=placement");
-        assert!(!snapshot.dependencies_expanded);
+        assert_eq!(snapshot.route, "#/island?group=placement");
         assert!(snapshot.draft.is_none());
     }
 }

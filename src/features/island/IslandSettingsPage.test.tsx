@@ -44,7 +44,7 @@ it("keeps animation preview cancellable without saving the draft", async () => {
   desktop();
   const validate = vi.spyOn(islandApi, "validatePreview").mockResolvedValue();
   const save = vi.spyOn(islandApi, "save").mockResolvedValue(config);
-  open("#/settings/island");
+  open("#/island");
   fireEvent.click(screen.getByRole("button", { name: "动画效果" }));
   const field = await screen.findByLabelText("展开时长（毫秒）");
   expect(screen.queryByLabelText("过渡曲线")).toBeNull();
@@ -62,7 +62,7 @@ it("keeps animation preview cancellable without saving the draft", async () => {
 
 it("keeps an edited revision intact when another window saves", async () => {
   desktop();
-  const store = open("#/settings/island");
+  const store = open("#/island");
   const enabled = await screen.findByRole("checkbox", { name: "启用灵动岛" });
   fireEvent.click(enabled);
   act(() => {
@@ -78,7 +78,7 @@ it("keeps an edited revision intact when another window saves", async () => {
 
 it("switches a matching capsule border with the theme and keeps a custom border", async () => {
   vi.spyOn(islandApi, "isDesktop").mockReturnValue(false);
-  open("#/settings/island?group=appearance");
+  open("#/island?group=appearance");
   const border = screen.getByLabelText<HTMLInputElement>("边框色");
   const background = screen.getByLabelText<HTMLInputElement>("背景色");
   await selectOption("岛屿主题", "浅色");
@@ -91,7 +91,7 @@ it("switches a matching capsule border with the theme and keeps a custom border"
 });
 
 it("keeps the island preview and its appearance draft when the workbench theme changes", () => {
-  const store = open("#/settings/island?group=appearance");
+  const store = open("#/island?group=appearance");
   const background = screen.getByLabelText<HTMLInputElement>("背景色");
   fireEvent.change(background, { target: { value: "#345678" } });
   const draft = mainWindowSession.draft;
@@ -107,7 +107,7 @@ it("keeps the island preview and its appearance draft when the workbench theme c
 it("restores the settings group and unsaved values from the tray session", async () => {
   desktop();
   mainWindowSession.draft = { ...config, edge: { ...config.edge, mode: "peek", hideDelayMs: 650 } };
-  open("#/settings/island?group=edge");
+  open("#/island?group=edge");
   expect((await screen.findByLabelText<HTMLInputElement>("隐藏延迟（毫秒）")).valueAsNumber).toBe(650);
   expect(screen.getByRole("button", { name: "边界隐藏" }).getAttribute("aria-current")).toBe("page");
   fireEvent.click(screen.getByRole("button", { name: "放弃草稿" }));
@@ -119,7 +119,7 @@ it("clears a captured tray draft when its save completed while the main window w
   desktop();
   mainWindowSession.draft = { ...config, notifications: { enabled: false } };
   vi.spyOn(islandApi, "config").mockResolvedValue({ ...mainWindowSession.draft, revision: 1 });
-  open("#/settings/island?group=notifications");
+  open("#/island?group=notifications");
   await screen.findByRole("checkbox", { name: "启用通知" });
   expect(screen.queryByRole("alert")).toBeNull();
   expect(screen.getByRole("button", { name: "保存设置" }).hasAttribute("disabled")).toBe(true);
@@ -128,7 +128,7 @@ it("clears a captured tray draft when its save completed while the main window w
 
 it("keeps the last serializable tray draft while a number field is empty", async () => {
   desktop();
-  open("#/settings/island?group=animation");
+  open("#/island?group=animation");
   const duration = await screen.findByLabelText("展开时长（毫秒）");
   fireEvent.change(duration, { target: { value: "450" } });
   fireEvent.change(duration, { target: { value: "" } });
@@ -138,7 +138,7 @@ it("keeps the last serializable tray draft while a number field is empty", async
 it("runs the browser draft preview locally", async () => {
   vi.spyOn(islandApi, "isDesktop").mockReturnValue(false);
   const validate = vi.spyOn(islandApi, "validatePreview");
-  open("#/settings/island");
+  open("#/island");
   fireEvent.click(screen.getByRole("button", { name: "动画效果" }));
   fireEvent.click(screen.getByRole("button", { name: "播放预览" }));
   expect(screen.getByText("暂无音乐")).toBeTruthy();
@@ -150,7 +150,7 @@ it("runs the browser draft preview locally", async () => {
 
 it("offers only edge anchors and lets the user move along the selected edge", async () => {
   vi.spyOn(islandApi, "isDesktop").mockReturnValue(false);
-  open("#/settings/island?group=placement");
+  open("#/island?group=placement");
   fireEvent.change(screen.getByLabelText("左右位置（%）"), { target: { value: "51" } });
   fireEvent.mouseDown(screen.getByRole("combobox", { name: "停靠位置" }), { button: 0 });
   const anchors = await screen.findAllByRole("option");
@@ -170,7 +170,7 @@ it("previews current desktop media in the settings without saving", async () => 
     canPrevious: false, canNext: true, canToggle: true, canSeek: true,
   });
   vi.spyOn(islandApi, "validatePreview").mockResolvedValue();
-  open("#/settings/island?group=animation");
+  open("#/island?group=animation");
   await screen.findByText("75", { selector: "text" });
   fireEvent.click(screen.getByRole("button", { name: "播放预览" }));
   expect(await screen.findByText("测试曲目")).toBeTruthy();
@@ -183,7 +183,7 @@ it("sets the upstream size in five-percent steps and restores its default", asyn
   vi.spyOn(islandApi, "isDesktop").mockReturnValue(false);
   // jsdom 没有布局，Base UI 需要量到轨道宽度才会显示滑块手柄。
   vi.spyOn(HTMLElement.prototype, "getBoundingClientRect").mockReturnValue(new DOMRect(0, 0, 180, 12));
-  open("#/settings/island?group=appearance");
+  open("#/island?group=appearance");
   const size = await screen.findByRole<HTMLInputElement>("slider", { name: "岛体大小（%）" });
   expect([size.min, size.max, size.step, size.value]).toEqual(["80", "140", "5", "100"]);
   fireEvent.change(size, { target: { value: "135" } });
@@ -200,7 +200,7 @@ it("updates the preview time and date at midnight without interaction", () => {
   try {
     vi.setSystemTime(new Date(2026, 0, 1, 23, 59, 59, 900));
     vi.spyOn(islandApi, "isDesktop").mockReturnValue(false);
-    open("#/settings/island?group=animation");
+    open("#/island?group=animation");
     fireEvent.click(screen.getByRole("button", { name: "播放预览" }));
     expect(screen.getByText("23:59", { selector: "time" })).toBeTruthy();
     act(() => vi.advanceTimersByTime(100));
@@ -215,7 +215,7 @@ it("updates the preview time and date at midnight without interaction", () => {
 it("pins the native island from settings, ignoring older runtime snapshots", async () => {
   desktop();
   const pin = vi.spyOn(islandApi, "pin").mockResolvedValue();
-  const store = open("#/settings/island");
+  const store = open("#/island");
   const button = await screen.findByRole("button", { name: "固定岛屿" });
   expect(store.getState().island.status?.state).toBe("compact");
   act(() => {
@@ -227,10 +227,11 @@ it("pins the native island from settings, ignoring older runtime snapshots", asy
   expect(store.getState().island.status?.state).toBe("expanded");
 });
 
-it("opens the notification deep link with a single switch and no desktop permission prompt in the browser", () => {
+it("redirects the old notification deep link with a single switch and no desktop permission prompt in the browser", () => {
   vi.spyOn(islandApi, "isDesktop").mockReturnValue(false);
   const access = vi.spyOn(islandApi, "requestNotificationAccess");
   open("#/settings/island?group=notifications");
+  expect(window.location.hash).toBe("#/island?group=notifications");
   expect(screen.getByRole("heading", { name: "通知" })).toBeTruthy();
   expect(screen.getAllByRole("checkbox")).toHaveLength(1);
   const enabled = screen.getByRole("checkbox", { name: "启用通知" });
@@ -248,7 +249,7 @@ it("keeps drafts across groups and retries a failed save as a single configurati
   const save = vi.spyOn(islandApi, "save").mockRejectedValueOnce("保存失败，磁盘空间不足")
     .mockImplementationOnce(async draft => ({ ...draft, revision: 1 }));
   const access = vi.spyOn(islandApi, "requestNotificationAccess");
-  const store = open("#/settings/island?group=notifications");
+  const store = open("#/island?group=notifications");
   await screen.findByRole("button", { name: "打开 Windows 通知隐私设置" });
   fireEvent.click(screen.getByRole("checkbox", { name: "启用通知" }));
   fireEvent.click(screen.getByRole("button", { name: "鼠标交互" }));
@@ -274,7 +275,7 @@ it("stages defaults at the saved revision and allows discarding them", async () 
   const saved = { ...config, revision: 7, enabled: false };
   vi.spyOn(islandApi, "config").mockResolvedValue(saved);
   const save = vi.spyOn(islandApi, "save").mockImplementation(async value => ({ ...value, revision: 8 }));
-  open("#/settings/island");
+  open("#/island");
   const reset = await screen.findByRole("button", { name: "恢复默认设置" });
   fireEvent.click(reset);
   expect(save).not.toHaveBeenCalled();

@@ -1,7 +1,7 @@
 import { readPreference } from "../../app/localPreferences";
 
 export const widgetNames = {
-  shortcuts: "快捷操作", recent: "最近项目", environment: "开发环境", git: "Git 动态",
+  recent: "最近项目", environment: "开发环境", git: "Git 动态",
   github: "GitHub 待办", remote: "远程连接", activity: "活动记录",
 };
 export type WidgetId = keyof typeof widgetNames;
@@ -16,6 +16,8 @@ function isWidget(value: unknown): value is Widget {
 
 export function loadLayout(): Widget[] {
   const saved = readPreference(layoutKey);
-  if (!Array.isArray(saved) || !saved.every(isWidget) || new Set(saved.map(item => item.id)).size !== saved.length) return defaultLayout;
-  return [...saved, ...defaultLayout.filter(widget => !saved.some(item => item.id === widget.id))];
+  if (!Array.isArray(saved)) return defaultLayout;
+  const current: unknown[] = saved.filter(item => item?.id !== "shortcuts");
+  if (!current.every(isWidget) || new Set(current.map(item => item.id)).size !== current.length) return defaultLayout;
+  return [...current, ...defaultLayout.filter(widget => !current.some(item => item.id === widget.id))];
 }

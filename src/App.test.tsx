@@ -8,6 +8,7 @@ import entryHtml from "../index.html?raw";
 import App from "./App";
 import { defaults } from "./app/navigation";
 import { islandApi } from "./features/island/islandApi";
+import { layoutKey } from "./features/overview/overviewLayout";
 import { mainWindowSession, restoreMainWindow } from "./mainWindowSession";
 import { createAppStore } from "./store";
 
@@ -30,32 +31,31 @@ function renderAt(hash: string) {
   return store;
 }
 
-it("shows the overview and lists its main dependencies", () => {
+it("shows the six resource modules on the overview", () => {
   renderAt("#/");
 
   expect(screen.getByRole("heading", { level: 1, name: "工作台总览" })).toBeTruthy();
-  const section = within(screen.getByRole("region", { name: "主要依赖" }));
-  const dependencies = within(section.getByRole("list")).getAllByRole("listitem");
-  expect(dependencies.map((item) => item.textContent).sort()).toEqual([
-    "React", "React Router", "Redux Toolkit", "StyleX", "Tauri", "TypeScript", "Vite", "lucide-react", "shadcn/ui",
+  const main = within(screen.getByRole("main"));
+  expect(main.getAllByRole("heading", { level: 2 }).map(item => item.textContent)).toEqual([
+    "最近项目", "开发环境", "Git 动态", "GitHub 待办", "远程连接", "活动记录",
   ]);
 });
 
-it("toggles the dependency list through Redux", () => {
-  const store = renderAt("#/");
-  const toggle = screen.getByRole("button", { name: "主要依赖" });
-  const section = within(screen.getByRole("region", { name: "主要依赖" }));
+it("keeps the order and visibility of saved modules after removing shortcuts", async () => {
+  mockLocalStorage();
+  localStorage.setItem(layoutKey, JSON.stringify([
+    { id: "activity", visible: true }, { id: "shortcuts", visible: true }, { id: "recent", visible: false },
+  ]));
+  renderAt("#/");
+  const main = within(screen.getByRole("main"));
+  expect(main.getAllByRole("heading", { level: 2 }).map(item => item.textContent)).toEqual([
+    "活动记录", "开发环境", "Git 动态", "GitHub 待办", "远程连接",
+  ]);
 
-  expect(toggle.getAttribute("aria-expanded")).toBe("true");
-  fireEvent.click(toggle);
-  expect(store.getState().welcome.dependenciesExpanded).toBe(false);
-  expect(toggle.getAttribute("aria-expanded")).toBe("false");
-  expect(section.queryByRole("list")).toBeNull();
-
-  fireEvent.click(toggle);
-  expect(store.getState().welcome.dependenciesExpanded).toBe(true);
-  expect(toggle.getAttribute("aria-expanded")).toBe("true");
-  expect(section.getByRole("list")).toBeTruthy();
+  fireEvent.click(main.getByRole("button", { name: "自定义总览" }));
+  const editor = within(await screen.findByRole("dialog", { name: "自定义总览" }));
+  expect(editor.queryByRole("checkbox", { name: "快捷操作" })).toBeNull();
+  expect(editor.getByRole("checkbox", { name: "最近项目", checked: false })).toBeTruthy();
 });
 
 it("keeps navigation groups static and reaches recent projects from the collapsed sidebar", async () => {
@@ -85,6 +85,18 @@ it("redirects an unknown hash route to the overview", async () => {
   expect(screen.getByRole("heading", { level: 1, name: "工作台总览" })).toBeTruthy();
 });
 
+it("opens island settings directly from the main navigation", async () => {
+  renderAt("#/settings");
+  const settings = within(await screen.findByRole("region", { name: "工作台设置" }));
+  expect(settings.queryByRole("link", { name: /灵动岛/ })).toBeNull();
+  const nav = within(screen.getByRole("navigation", { name: "主导航" }));
+  fireEvent.click(nav.getByRole("link", { name: "灵动岛" }));
+  expect(await screen.findByRole("heading", { level: 1, name: "灵动岛设置" })).toBeTruthy();
+  expect(window.location.hash).toBe("#/island");
+  expect(nav.getByRole("link", { name: "灵动岛", current: "page" })).toBeTruthy();
+  expect(screen.getByRole("link", { name: "设置" }).hasAttribute("aria-current")).toBe(false);
+});
+
 function mockLocalStorage() {
   const storage = new Map<string, string>();
   vi.stubGlobal("localStorage", {
@@ -92,6 +104,17 @@ function mockLocalStorage() {
     setItem: (key: string, value: string) => storage.set(key, value),
   });
 }
+
+it("adds the island to an existing customized navigation without resetting preferences", () => {
+  mockLocalStorage();
+  const groups = [...defaults.groups].reverse().map(group =>
+    group.id === "workbench" ? { ...group, title: "常用" } : group);
+  const expected = { ...defaults, sidebar: "collapsed", groups, pins: ["projects"] };
+  const previous = groups.map(group => ({ ...group, items: group.items.filter(id => id !== "island") }));
+  localStorage.setItem("zx-once.workbench.preferences.v1", JSON.stringify({ ...expected, groups: previous }));
+  const store = renderAt("#/");
+  expect(store.getState().preferences).toEqual(expected);
+});
 
 it.each([
   { saved: '{"theme":"dark","groups":[]}', systemDark: false, theme: "dark", resolved: "dark" },
@@ -158,23 +181,21 @@ it("follows system changes, keeps explicit themes across reloads, and preserves 
   expect(refreshed.getState()).toEqual({ ...business, preferences });
 });
 
-it("restores the settings group and welcome disclosure before mounting a rebuilt window", async () => {
-  const route = "#/settings/island?group=animation";
+it("restores the settings group before mounting a rebuilt window", async () => {
+  const route = "#/island?group=animation";
   window.history.replaceState(null, "", "#/");
   vi.spyOn(islandApi, "isDesktop").mockReturnValue(true);
   mockIPC(command => {
     expect(command).toBe("main_window_restore");
-    return { route, dependenciesExpanded: false, draft: null };
+    return { route, draft: null };
   });
   try {
     await restoreMainWindow();
     expect(window.location.hash).toBe(route);
-    expect(createAppStore(mainWindowSession.dependenciesExpanded).getState().welcome.dependenciesExpanded).toBe(false);
     expect(window.__zxMainSession).toBe(mainWindowSession);
   } finally {
     clearMocks();
     vi.restoreAllMocks();
-    mainWindowSession.dependenciesExpanded = true;
     delete window.__zxMainSession;
   }
 });

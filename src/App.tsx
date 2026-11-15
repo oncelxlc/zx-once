@@ -1,5 +1,5 @@
 import { lazy } from "react";
-import { Navigate, Route, Routes } from "react-router";
+import { Navigate, Route, Routes, useLocation } from "react-router";
 import { WelcomePage } from "./WelcomePage";
 import { AppShell } from "./app/AppShell";
 import { ToastProvider } from "./app/toasts";
@@ -13,6 +13,11 @@ const RemotePage = lazy(() => import("./features/remote/RemotePage").then(module
 const ToolboxPage = lazy(() => import("./features/toolbox/ToolboxPage").then(module => ({ default: module.ToolboxPage })));
 const SettingsPage = lazy(() => import("./app/SettingsPage").then(module => ({ default: module.SettingsPage })));
 
+function LegacyIslandRedirect() {
+  const { search, hash } = useLocation();
+  return <Navigate to={{ pathname: "/island", search, hash }} replace />;
+}
+
 export default function App() {
   return (
     <ToastProvider>
@@ -25,10 +30,11 @@ export default function App() {
           <Route path="github" element={<GitHubPage />} />
           <Route path="remote" element={<RemotePage />} />
           <Route path="toolbox" element={<ToolboxPage />} />
+          <Route path="island" element={<IslandSettingsPage />} />
           <Route path="settings" element={<SettingsPage />} />
           <Route path="settings/appearance" element={<SettingsPage />} />
           <Route path="settings/navigation" element={<SettingsPage />} />
-          <Route path="settings/island" element={<IslandSettingsPage />} />
+          <Route path="settings/island" element={<LegacyIslandRedirect />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       </Routes>

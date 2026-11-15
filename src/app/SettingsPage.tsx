@@ -1,4 +1,4 @@
-import { Check, ChevronRight, ListTree, Monitor, Moon, Palette, PanelsTopLeft, Sun } from "lucide-react";
+import { Check, ChevronRight, ListTree, Monitor, Moon, Palette, Sun } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useLocation } from "react-router";
 import { Button } from "../components/ui/button";
@@ -13,7 +13,6 @@ import { PageHeader, Panel } from "./workbenchUi";
 const sections = [
   { to: "/settings/appearance", title: "外观", summary: "选择工作台的浅色、深色或系统主题", icon: Palette },
   { to: "/settings/navigation", title: "导航自定义", summary: "排列分组和页面，管理侧栏收藏", icon: ListTree },
-  { to: "/settings/island", title: "灵动岛设置", summary: "配置岛屿位置、通知、外观和交互", icon: PanelsTopLeft },
 ];
 
 const themes = [
@@ -29,7 +28,7 @@ export function SettingsPage() {
   const section = sections.find(item => item.to === pathname);
   return <>
     {section && <div><Button variant="link" size="sm" nativeButton={false} render={<Link to="/settings" />}>返回设置</Button></div>}
-    <PageHeader title={section?.title ?? "设置"} description={section?.summary ?? "管理工作台偏好与桌面功能。"} />
+    <PageHeader title={section?.title ?? "设置"} description={section?.summary ?? "管理工作台外观与导航。"} />
     {!section && <Panel title="工作台设置">
       <ItemGroup className="has-data-[size=sm]:gap-[3px]">{sections.map(({ to, title, summary, icon: Icon }) =>
         <div key={to} role="listitem"><Item render={<Link to={to} />} variant="outline" size="sm">

@@ -80,7 +80,7 @@ export function IslandSettingsPage() {
   }
   return (
     <>
-      <PageHeader eyebrow="设置" title="灵动岛设置" description="管理岛体外观、停靠位置和桌面交互。" />
+      <PageHeader title="灵动岛设置" description="管理岛体外观、停靠位置和桌面交互。" />
       <div {...stylex.props(ui.layout)}>
         <nav aria-label="设置分组" {...stylex.props(ui.nav)}>
           {groupNames.map(key => <Button key={key} size="sm" variant={group === key ? "secondary" : "ghost"}

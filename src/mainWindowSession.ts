@@ -3,7 +3,6 @@ import { islandApi } from "./features/island/islandApi";
 import type { IslandConfig } from "./features/island/types";
 
 interface MainWindowSession {
-  dependenciesExpanded: boolean;
   draft: IslandConfig | null;
 }
 
@@ -13,14 +12,13 @@ declare global {
   }
 }
 
-export const mainWindowSession: MainWindowSession = { dependenciesExpanded: true, draft: null };
+export const mainWindowSession: MainWindowSession = { draft: null };
 
 export async function restoreMainWindow() {
   if (!islandApi.isDesktop()) return;
   try {
     const snapshot = await invoke<(MainWindowSession & { route: string }) | null>("main_window_restore");
     if (snapshot) {
-      mainWindowSession.dependenciesExpanded = snapshot.dependenciesExpanded;
       mainWindowSession.draft = snapshot.draft;
       window.history.replaceState(null, "", snapshot.route);
     }
