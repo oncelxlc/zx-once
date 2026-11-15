@@ -26,7 +26,7 @@ zx-once 在浏览器和桌面主窗口中加载同一套 React 工作台。项�
 
 ## 验证
 
-- **前端**　在仓库根目录运行 `pnpm check`。它依次运行 `pnpm typecheck`（TypeScript 和生产组件 200 有效行限制）、`pnpm test`（Vitest 和组件行数检查器的单元测试）、`pnpm build`。界面改动还需用 `pnpm tauri:dev` 打开桌面窗口，验证受影响的操作。
+- **前端**　在仓库根目录运行 `pnpm check`。它依次运行 `pnpm typecheck`（TypeScript 和生产组件 200 有效行限制）、`pnpm test`（Vitest 和组件行数检查器的单元测试）、`pnpm build`。
 - **Rust**　在 `src-tauri/` 运行下列命令。Windows CI 对推送和拉取请求执行相同的 Rust 检查及前端检查。[CI 工作流](../../.github/workflows/check.yml)
 
 ```sh
@@ -34,3 +34,5 @@ cargo fmt --check
 cargo clippy --locked --all-targets --all-features -- -D warnings
 cargo test --locked
 ```
+
+尚未执行的操作及预期结果统一记录在[待操作验证清单](pending-verifications.md)。

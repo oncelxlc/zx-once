@@ -3,6 +3,7 @@
 ## 总体
 
 - [项目结构、运行与验证](overview/project.md) — 浏览器与 Windows 桌面的能力范围、源码入口、开发环境、构建和检查命令。
+- [待操作验证清单](overview/pending-verifications.md) — 待用户确认后集中验证的操作及预期结果。
 
 ## 模块
 

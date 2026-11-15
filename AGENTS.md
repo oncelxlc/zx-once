@@ -5,10 +5,15 @@
 - 基础控件使用 `src/components/ui/` 中的 shadcn/ui 源码，沿用 `components.json` 指定的 Base Nova 组件样式与 Neutral 主题，由 Tailwind CSS 编译。页面布局和灵动岛预览可使用 StyleX，图标从 `lucide-react` 按需导入。
 - 使用 pnpm 管理前端依赖，使用 Cargo 管理 Rust 依赖。调整依赖时同步更新对应的锁文件。
 - TypeScript 保持严格类型检查，使用两空格缩进、双引号和分号。生产 React 组件遵循仓库的 200 有效行检查。
-- 修改前端后运行 `pnpm check`，依次完成类型检查、自动化测试和前端构建。界面变动还应通过 `pnpm tauri:dev` 检查桌面显示。
+- 修改前端后运行 `pnpm check`，依次完成类型检查、自动化测试和前端构建。
 - 将交互测试放在实现旁的 `*.test.tsx`，使用 Vitest、Testing Library 和 jsdom。路由和 Redux 行为使用真实路由和独立的测试 store 验证。
 - 修改 Rust 后，在 `src-tauri/` 中运行 `cargo fmt --check`、`cargo clippy --all-targets --all-features -- -D warnings` 和 `cargo test`。
 - 确需引入主机操作时，仅授予该操作所需的 Tauri 权限。
+
+## 操作验证
+
+- 日常修改默认执行与变更相关的自动化检查。需要启动桌面窗口、控制界面、人工点击或额外授权的操作验证，等用户明确要求或确认后再集中执行，避免每次修改都发起验证或授权请求。
+- 将尚未验证的操作及预期结果统一记录在[待操作验证清单](docs/overview/pending-verifications.md)，合并重复项，在交付说明中注明。完成验证后更新清单并报告实际结果。
 
 ## 文档同步
 

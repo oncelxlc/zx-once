@@ -17,7 +17,7 @@ pnpm dev
 
 | 分类 | 内容 |
 | --- | --- |
-| 总体 | [文档目录](docs/README.md) · [项目结构、运行与验证](docs/overview/project.md) |
+| 总体 | [文档目录](docs/README.md) · [项目结构、运行与验证](docs/overview/project.md) · [待操作验证清单](docs/overview/pending-verifications.md) |
 | 模块 | [开发者工作台](docs/modules/workbench.md) · [Windows 灵动岛](docs/modules/island.md) |
 | 特殊 | [界面主题与配色](docs/special/design-system/README.md) · [Windows 通知与 MSIX 打包](docs/special/windows-notifications.md) · [灵动岛性能诊断](docs/special/island-performance.md) |
 
