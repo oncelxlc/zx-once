@@ -1,7 +1,8 @@
 import * as stylex from "@stylexjs/stylex";
 import { useLayoutEffect, useState } from "react";
 import { useSearchParams } from "react-router";
-import { PageHeader, Panel } from "../../app/workbenchUi";
+import { QueryNavigation, WorkbenchPage } from "../../app/WorkbenchPage";
+import { Panel, ui } from "../../app/workbenchUi";
 import { Alert, AlertDescription } from "../../components/ui/alert";
 import { Button } from "../../components/ui/button";
 import { FieldDescription, FieldGroup, FieldSet } from "../../components/ui/field";
@@ -12,8 +13,7 @@ import { island } from "./islandSlice";
 import { IslandPreview } from "./IslandPreview";
 import { NotificationSettings } from "./NotificationSettings";
 import { Check, IslandFieldsDisabled } from "./SettingsFields";
-import { groups, SettingsGroups, type Group } from "./SettingsGroups";
-import { ui } from "./settingsStyles";
+import { groups, SettingsGroups } from "./SettingsGroups";
 import type { IslandConfig, IslandState } from "./types";
 import { useIsland } from "./useIsland";
 
@@ -53,9 +53,8 @@ export function IslandSettingsPage() {
   }, [edit, saved]);
   useLayoutEffect(() => () => { mainWindowSession.draft = null; }, []);
   const draft = saved && (edit ?? saved);
-  const [search, setSearch] = useSearchParams();
-  const groupNames = Object.keys(groups) as Group[];
-  const group = groupNames.find(name => name === search.get("group")) ?? "overview";
+  const [search] = useSearchParams();
+  const [group, groupLabel] = groups.find(([key]) => key === search.get("group")) ?? groups[0];
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState("");
   const conflict = edit && saved && edit.revision !== saved.revision;
@@ -79,63 +78,54 @@ export function IslandSettingsPage() {
     setNotice("");
   }
   return (
-    <>
-      <PageHeader title="灵动岛设置" description="管理岛体外观、停靠位置和桌面交互。" />
-      <div {...stylex.props(ui.layout)}>
-        <nav aria-label="设置分组" {...stylex.props(ui.nav)}>
-          {groupNames.map(key => <Button key={key} size="sm" variant={group === key ? "secondary" : "ghost"}
-            aria-current={group === key ? "page" : undefined} className="justify-start" onClick={() => setSearch(current => {
-              if (key === "overview") current.delete("group"); else current.set("group", key);
-              return current;
-            }, { replace: true })}>{groups[key]}</Button>)}
-        </nav>
-        <Panel title={groups[group]}>
-          <form onSubmit={event => {
-            event.preventDefault();
-            if (desktop && saved && edit && !busy && !conflict) void commit(() => islandApi.save(edit));
-          }}>
-            <FieldGroup>
-              {!desktop && <Alert role="note"><AlertDescription>浏览器中可以调整并预览。保存设置和控制窗口请打开 Windows 桌面应用。</AlertDescription></Alert>}
-              {error && <Alert variant="destructive"><AlertDescription>{error}</AlertDescription></Alert>}
-              {draft ? <>
-                <IslandFieldsDisabled.Provider value={busy}>
-                  <FieldSet disabled={busy} aria-label={groups[group]}>
-                    {group === "overview" && <>
-                      <FieldDescription>窗口状态 · {status ? stateLabels[status.state] : desktop ? "正在连接" : "浏览器预览"}</FieldDescription>
-                      <Check label="启用灵动岛" value={draft.enabled} change={enabled => editConfig({ ...draft, enabled })} />
-                      <div {...stylex.props(ui.actions)}>
-                        <Button variant="outline" disabled={!desktop || !config?.enabled} onClick={() => void perform(islandApi.show)}>显示岛屿</Button>
-                        <Button variant="outline" disabled={!desktop || !config?.enabled} onClick={() => void perform(islandApi.hide)}>隐藏岛屿</Button>
-                        <Button variant="outline" disabled={!desktop || !config?.interaction.pinEnabled || !status || !["compact", "expanded", "pinned"].includes(status.state)}
-                          aria-pressed={status?.state === "pinned"}
-                          onClick={() => void perform(() => islandApi.pin(status?.state !== "pinned"))}>{status?.state === "pinned" ? "取消固定" : "固定岛屿"}</Button>
-                        <Button variant="outline" disabled={!desktop || !config?.enabled} onClick={() => void perform(islandApi.restart)}>重启岛屿</Button>
-                      </div>
-                    </>}
-                    <SettingsGroups group={group} config={draft} displays={displays}
-                      update={(section, patch) => editConfig({ ...draft, [section]: { ...draft[section], ...patch } })} />
-                    {group === "notifications" && <NotificationSettings enabled={draft.notifications.enabled}
-                      listening={Boolean(desktop && saved?.enabled && saved.notifications.enabled)} status={notifications}
-                      change={enabled => editConfig({ ...draft, notifications: { enabled } })} perform={perform}
-                      refresh={async () => { dispatch(island.actions.notificationsReceived(await islandApi.notifications())); }} />}
-                    {(group === "animation" || group === "appearance") && <IslandPreview config={draft} desktop={desktop} report={report} />}
-                  </FieldSet>
-                </IslandFieldsDisabled.Provider>
-                {conflict && <Alert variant="destructive"><AlertDescription>配置已在其他窗口更新。放弃草稿可载入最新设置。</AlertDescription></Alert>}
-                <div {...stylex.props(ui.actions)}>
-                  <Button type="submit" disabled={!desktop || !saved || !edit || busy || Boolean(conflict)}>保存设置</Button>
-                  {edit && <Button variant="outline" disabled={busy}
-                    onClick={() => { setEdit(null); setNotice(""); }}>放弃草稿</Button>}
-                  {group === "overview" && <Button variant="outline" disabled={!saved || busy || Boolean(conflict)}
-                    onClick={() => { if (saved) editConfig({ ...browserDefaults, revision: saved.revision }); }}>恢复默认设置</Button>}
-                </div>
-                <FieldDescription role="status">{busy ? "正在处理…" : notice || (edit ? "有未保存的更改" : "")}</FieldDescription>
-              </> : error ? <Button variant="outline" onClick={retry}>重新读取设置</Button>
-                : <p role="status">正在读取桌面设置…</p>}
-            </FieldGroup>
-          </form>
-        </Panel>
-      </div>
-    </>
+    <WorkbenchPage title="灵动岛设置" view={group} navigation={<QueryNavigation label="设置分组"
+      param="group" items={groups} current={group} omitDefault />}>
+      <Panel title={groupLabel}>
+        <form onSubmit={event => {
+          event.preventDefault();
+          if (desktop && saved && edit && !busy && !conflict) void commit(() => islandApi.save(edit));
+        }}>
+          <FieldGroup>
+            {!desktop && <Alert role="note"><AlertDescription>浏览器可预览草稿。保存设置和控制窗口需使用 Windows 桌面应用。</AlertDescription></Alert>}
+            {error && <Alert variant="destructive"><AlertDescription>{error}</AlertDescription></Alert>}
+            {draft ? <>
+              <IslandFieldsDisabled.Provider value={busy}>
+                <FieldSet disabled={busy} aria-label={groupLabel}>
+                  {group === "overview" && <>
+                    <FieldDescription>窗口状态 · {status ? stateLabels[status.state] : desktop ? "正在连接" : "浏览器预览"}</FieldDescription>
+                    <Check label="启用灵动岛" value={draft.enabled} change={enabled => editConfig({ ...draft, enabled })} />
+                    <div {...stylex.props(ui.row)}>
+                      <Button variant="outline" disabled={!desktop || !config?.enabled} onClick={() => void perform(islandApi.show)}>显示岛屿</Button>
+                      <Button variant="outline" disabled={!desktop || !config?.enabled} onClick={() => void perform(islandApi.hide)}>隐藏岛屿</Button>
+                      <Button variant="outline" disabled={!desktop || !config?.interaction.pinEnabled || !status || !["compact", "expanded", "pinned"].includes(status.state)}
+                        aria-pressed={status?.state === "pinned"}
+                        onClick={() => void perform(() => islandApi.pin(status?.state !== "pinned"))}>{status?.state === "pinned" ? "取消固定" : "固定岛屿"}</Button>
+                      <Button variant="outline" disabled={!desktop || !config?.enabled} onClick={() => void perform(islandApi.restart)}>重启岛屿</Button>
+                    </div>
+                  </>}
+                  <SettingsGroups group={group} config={draft} displays={displays}
+                    update={(section, patch) => editConfig({ ...draft, [section]: { ...draft[section], ...patch } })} />
+                  {group === "notifications" && <NotificationSettings enabled={draft.notifications.enabled}
+                    listening={Boolean(desktop && saved?.enabled && saved.notifications.enabled)} status={notifications}
+                    change={enabled => editConfig({ ...draft, notifications: { enabled } })} perform={perform}
+                    refresh={async () => { dispatch(island.actions.notificationsReceived(await islandApi.notifications())); }} />}
+                  {(group === "animation" || group === "appearance") && <IslandPreview config={draft} desktop={desktop} report={report} />}
+                </FieldSet>
+              </IslandFieldsDisabled.Provider>
+              {conflict && <Alert variant="destructive"><AlertDescription>配置已在其他窗口更新。放弃草稿可载入最新设置。</AlertDescription></Alert>}
+              <div {...stylex.props(ui.row)}>
+                <Button type="submit" disabled={!desktop || !saved || !edit || busy || Boolean(conflict)}>保存设置</Button>
+                {edit && <Button variant="outline" disabled={busy}
+                  onClick={() => { setEdit(null); setNotice(""); }}>放弃草稿</Button>}
+                {group === "overview" && <Button variant="outline" disabled={!saved || busy || Boolean(conflict)}
+                  onClick={() => { if (saved) editConfig({ ...browserDefaults, revision: saved.revision }); }}>恢复默认设置</Button>}
+              </div>
+              <FieldDescription role="status">{busy ? "正在处理…" : notice || (edit ? "有未保存的更改" : "")}</FieldDescription>
+            </> : error ? <Button variant="outline" onClick={retry}>重新读取设置</Button>
+              : <p role="status">正在读取桌面设置…</p>}
+          </FieldGroup>
+        </form>
+      </Panel>
+    </WorkbenchPage>
   );
 }

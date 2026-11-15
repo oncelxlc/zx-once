@@ -6,11 +6,13 @@
 
 浅色值定义在 `:root`，深色值由 `:root.dark` 覆盖。StyleX 可以直接使用 `var(--card)` 等颜色。shadcn/ui 通过 Tailwind 的 `@theme inline` 将同一变量映射为 `bg-card`、`text-foreground`、`border-input` 和 `ring-ring` 等工具类。[主题变量定义](../../../src/styles.css)
 
+页头保留页面标题和主要操作。参数解释、风险提示和错误信息随对应控件呈现，空状态在内容区就近提供下一步操作。[共享页面布局](../../../src/app/WorkbenchPage.tsx)
+
 | CSS 变量 | 浅色 | 深色 | 用途 |
 | --- | --- | --- | --- |
-| `--background` | `#F5F6F7` | `#181818` | 页面底色、状态栏 |
+| `--background` | `#F5F6F7` | `#181818` | 页头、页面内容区底色 |
 | `--foreground` | `#20262D` | `#E6E6E6` | 标题、正文 |
-| `--sidebar`、`--sidebar-background` | `#F0F2F4` | `#1D1D1D` | 侧栏与窄窗口顶栏 |
+| `--sidebar`、`--sidebar-background` | `#F0F2F4` | `#1D1D1D` | 顶部窗口栏、一级导航与底部状态栏共用的底色 |
 | `--sidebar-foreground` | `#20262D` | `#E0E0E0` | 侧栏文字 |
 | `--card` | `#FFFFFF` | `#222222` | 普通面板、表单控件 |
 | `--popover` | `#FFFFFF` | `#292929` | 菜单、弹窗、浮层 |

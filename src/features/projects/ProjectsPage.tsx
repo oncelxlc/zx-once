@@ -5,7 +5,8 @@ import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useSearchParams } from "react-router";
 import { addActivity } from "../../app/activitySlice";
-import { DemoBoundary, Dialog, PageHeader, Panel, ui } from "../../app/workbenchUi";
+import { WorkbenchPage } from "../../app/WorkbenchPage";
+import { DemoBoundary, Dialog, Panel, ui } from "../../app/workbenchUi";
 import { ChoiceSelect } from "../../app/ChoiceSelect";
 import { Button } from "../../components/ui/button";
 import { Empty, EmptyContent, EmptyHeader, EmptyTitle } from "../../components/ui/empty";
@@ -66,9 +67,8 @@ export function ProjectsPage() {
     setParams({ new: "1" });
   }
   const close = () => setParams({});
-  return <>
-    <PageHeader title="项目" eyebrow="本地开发" description="管理本地工作区、开发环境与关联仓库。"
-      actions={<Button variant="default" onClick={openAdd}><Plus data-icon="inline-start" aria-hidden="true" />新增项目</Button>} />
+  return <WorkbenchPage title="项目"
+    actions={<Button variant="default" onClick={openAdd}><Plus data-icon="inline-start" aria-hidden="true" />新增项目</Button>}>
     <DemoBoundary>
       <Panel title="本地项目" action={<span {...stylex.props(ui.muted)}>{projects.length} / {items.length} 个项目</span>}>
         <div {...stylex.props(ui.stack)}>
@@ -111,5 +111,5 @@ export function ProjectsPage() {
     {!adding && id && !project && <Dialog title="找不到项目" onClose={close}>
       <p>此演示项目已移除或未包含在本次会话。</p><Button variant="outline" onClick={close}>返回项目列表</Button>
     </Dialog>}
-  </>;
+  </WorkbenchPage>;
 }

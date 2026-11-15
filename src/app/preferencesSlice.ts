@@ -42,7 +42,7 @@ function load(): Preferences {
     const workbench = groups.find(group => group.id === "workbench") ?? groups[0];
     workbench.items.push("island");
   }
-  return { ...saved, groups };
+  return { ...saved, sidebar: saved.sidebar === "auto" ? defaults.sidebar : saved.sidebar, groups };
 }
 
 export function persistPreferences(value: Preferences) {

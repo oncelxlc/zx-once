@@ -45,7 +45,7 @@ it("keeps animation preview cancellable without saving the draft", async () => {
   const validate = vi.spyOn(islandApi, "validatePreview").mockResolvedValue();
   const save = vi.spyOn(islandApi, "save").mockResolvedValue(config);
   open("#/island");
-  fireEvent.click(screen.getByRole("button", { name: "动画效果" }));
+  fireEvent.click(screen.getByRole("link", { name: "动画效果" }));
   const field = await screen.findByLabelText("展开时长（毫秒）");
   expect(screen.queryByLabelText("过渡曲线")).toBeNull();
   await selectOption("动画预设", "自定义 · Custom");
@@ -104,15 +104,23 @@ it("keeps the island preview and its appearance draft when the workbench theme c
   }
 });
 
-it("restores the settings group and unsaved values from the tray session", async () => {
+it("restores a tray draft and keeps it while navigating back and forward between groups", async () => {
   desktop();
   mainWindowSession.draft = { ...config, edge: { ...config.edge, mode: "peek", hideDelayMs: 650 } };
   open("#/island?group=edge");
   expect((await screen.findByLabelText<HTMLInputElement>("隐藏延迟（毫秒）")).valueAsNumber).toBe(650);
-  expect(screen.getByRole("button", { name: "边界隐藏" }).getAttribute("aria-current")).toBe("page");
+  expect(screen.getByRole("link", { name: "边界隐藏" }).getAttribute("aria-current")).toBe("page");
+  fireEvent.click(screen.getByRole("link", { name: "启动管理" }));
+  expect(window.location.hash).toBe("#/island?group=startup");
+  window.history.back();
+  expect((await screen.findByLabelText<HTMLInputElement>("隐藏延迟（毫秒）")).valueAsNumber).toBe(650);
+  window.history.forward();
+  await screen.findByRole("checkbox", { name: "登录 Windows 时启动" });
+  expect(screen.getByRole("link", { name: "启动管理" }).getAttribute("aria-current")).toBe("page");
   fireEvent.click(screen.getByRole("button", { name: "放弃草稿" }));
-  expect(screen.queryByLabelText("隐藏延迟（毫秒）")).toBeNull();
   expect(mainWindowSession.draft).toBeNull();
+  fireEvent.click(screen.getByRole("link", { name: "边界隐藏" }));
+  expect(screen.queryByLabelText("隐藏延迟（毫秒）")).toBeNull();
 });
 
 it("clears a captured tray draft when its save completed while the main window was closing", async () => {
@@ -139,7 +147,7 @@ it("runs the browser draft preview locally", async () => {
   vi.spyOn(islandApi, "isDesktop").mockReturnValue(false);
   const validate = vi.spyOn(islandApi, "validatePreview");
   open("#/island");
-  fireEvent.click(screen.getByRole("button", { name: "动画效果" }));
+  fireEvent.click(screen.getByRole("link", { name: "动画效果" }));
   fireEvent.click(screen.getByRole("button", { name: "播放预览" }));
   expect(screen.getByText("暂无音乐")).toBeTruthy();
   expect(screen.getByText("00:00", { selector: "text" })).toBeTruthy();
@@ -252,7 +260,7 @@ it("keeps drafts across groups and retries a failed save as a single configurati
   const store = open("#/island?group=notifications");
   await screen.findByRole("button", { name: "打开 Windows 通知隐私设置" });
   fireEvent.click(screen.getByRole("checkbox", { name: "启用通知" }));
-  fireEvent.click(screen.getByRole("button", { name: "鼠标交互" }));
+  fireEvent.click(screen.getByRole("link", { name: "鼠标交互" }));
   fireEvent.click(screen.getByRole("checkbox", { name: "点击展开" }));
   expect(save).not.toHaveBeenCalled();
   expect(access).not.toHaveBeenCalled();

@@ -4,7 +4,8 @@ import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useSearchParams } from "react-router";
 import { addActivity } from "../../app/activitySlice";
-import { DemoBoundary, Dialog, PageHeader, Panel, ui } from "../../app/workbenchUi";
+import { QueryNavigation, WorkbenchPage } from "../../app/WorkbenchPage";
+import { DemoBoundary, Dialog, Panel, ui } from "../../app/workbenchUi";
 import { Badge } from "../../components/ui/badge";
 import { ChoiceSelect } from "../../app/ChoiceSelect";
 import { Button } from "../../components/ui/button";
@@ -12,7 +13,6 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "../../compo
 import { Empty, EmptyContent, EmptyHeader, EmptyTitle } from "../../components/ui/empty";
 import { Input } from "../../components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../../components/ui/table";
-import { ResourceTabs } from "../../app/ResourceTabs";
 import { notify } from "../../app/toasts";
 import type { RootState } from "../../store";
 import { defaultVersionChanged, sampleDetected, type EnvironmentResource, type ResourceCategory } from "./environmentSlice";
@@ -39,39 +39,37 @@ export function EnvironmentPage() {
     notify(`模拟检测完成，已读取 ${items.length} 个资源的样本。`);
   }
   const close = () => setParams({ tab: category });
-  return <>
-    <PageHeader title="开发环境" eyebrow="本地开发" description="查看本机运行时、编译工具与包管理器的演示配置。"
-      actions={<Button variant="default" onClick={detect}><ScanLine data-icon="inline-start" aria-hidden="true" />模拟检测</Button>} />
+  return <WorkbenchPage title="开发环境" view={category}
+    navigation={<QueryNavigation label="环境类别" items={categories} current={category} clear={["id"]} />}
+    actions={<Button variant="default" onClick={detect}><ScanLine data-icon="inline-start" aria-hidden="true" />模拟检测</Button>}>
     <DemoBoundary>
       <Panel title="环境资源" action={<span {...stylex.props(ui.muted)}>样本检测 · {new Date(detectedAt).toLocaleString("zh-CN", { hour12: false })}</span>}>
-        <ResourceTabs label="环境类别" tabs={categories} current={category}>
-          <div {...stylex.props(ui.stack)}>
-            <div {...stylex.props(ui.toolbar)}>
-              <Input type="search" className="min-w-40 max-w-xs flex-1" aria-label="搜索环境资源" placeholder="搜索资源名称" value={query}
-                onChange={event => setQuery(event.target.value)} />
-              <ChoiceSelect value={status} aria-label="筛选安装状态" onValueChange={setStatus} options={[
-                { value: "", label: "全部状态" }, { value: "installed", label: "已安装" }, { value: "missing", label: "未安装" },
-              ]} />
-            </div>
-            {shown.length ? <Table>
-              <TableHeader><TableRow>{["资源名称", "默认版本", "安装状态", "样本路径"].map(label => <TableHead scope="col" key={label}>{label}</TableHead>)}</TableRow></TableHeader>
-              <TableBody>{shown.map(item => <TableRow key={item.id}>
-                <TableCell><Link to={`/environment?id=${item.id}`} {...stylex.props(ui.link)}>{item.name}</Link></TableCell>
-                <TableCell className="font-mono">{item.defaultVersion ?? "—"}</TableCell>
-                <TableCell><Badge variant={item.versions.length ? "success" : "outline"}>{item.versions.length ? "已安装" : "未安装"}</Badge></TableCell>
-                <TableCell className="font-mono text-muted-foreground">{item.path || "—"}</TableCell>
-              </TableRow>)}</TableBody>
-            </Table> : <Empty>
-              <EmptyHeader><EmptyTitle>此类别下没有匹配的资源。</EmptyTitle></EmptyHeader>
-              <EmptyContent><Button variant="outline" onClick={() => { setQuery(""); setStatus(""); }}>清空筛选</Button></EmptyContent>
-            </Empty>}
+        <div {...stylex.props(ui.stack)}>
+          <div {...stylex.props(ui.toolbar)}>
+            <Input type="search" className="min-w-40 max-w-xs flex-1" aria-label="搜索环境资源" placeholder="搜索资源名称" value={query}
+              onChange={event => setQuery(event.target.value)} />
+            <ChoiceSelect value={status} aria-label="筛选安装状态" onValueChange={setStatus} options={[
+              { value: "", label: "全部状态" }, { value: "installed", label: "已安装" }, { value: "missing", label: "未安装" },
+            ]} />
           </div>
-        </ResourceTabs>
+          {shown.length ? <Table>
+            <TableHeader><TableRow>{["资源名称", "默认版本", "安装状态", "样本路径"].map(label => <TableHead scope="col" key={label}>{label}</TableHead>)}</TableRow></TableHeader>
+            <TableBody>{shown.map(item => <TableRow key={item.id}>
+              <TableCell><Link to={`/environment?id=${item.id}`} {...stylex.props(ui.link)}>{item.name}</Link></TableCell>
+              <TableCell className="font-mono">{item.defaultVersion ?? "—"}</TableCell>
+              <TableCell><Badge variant={item.versions.length ? "success" : "outline"}>{item.versions.length ? "已安装" : "未安装"}</Badge></TableCell>
+              <TableCell className="font-mono text-muted-foreground">{item.path || "—"}</TableCell>
+            </TableRow>)}</TableBody>
+          </Table> : <Empty>
+            <EmptyHeader><EmptyTitle>此类别下没有匹配的资源。</EmptyTitle></EmptyHeader>
+            <EmptyContent><Button variant="outline" onClick={() => { setQuery(""); setStatus(""); }}>清空筛选</Button></EmptyContent>
+          </Empty>}
+        </div>
       </Panel>
     </DemoBoundary>
     {resource ? <ResourceDetails key={resource.id} resource={resource} onClose={close} /> :
       id && <Dialog title="找不到环境资源" onClose={close}><p>演示样本中没有这个资源。</p><Button variant="outline" onClick={close}>返回列表</Button></Dialog>}
-  </>;
+  </WorkbenchPage>;
 }
 
 function ResourceDetails({ resource, onClose }: { resource: EnvironmentResource; onClose: () => void }) {

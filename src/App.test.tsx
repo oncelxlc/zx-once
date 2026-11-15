@@ -52,7 +52,10 @@ it("keeps the order and visibility of saved modules after removing shortcuts", a
     "活动记录", "开发环境", "Git 动态", "GitHub 待办", "远程连接",
   ]);
 
-  fireEvent.click(main.getByRole("button", { name: "自定义总览" }));
+  const header = screen.getByRole("heading", { name: "工作台总览" }).closest("header");
+  expect(header).toBeTruthy();
+  expect(screen.getByRole("main").contains(header)).toBe(false);
+  fireEvent.click(screen.getByRole("button", { name: "自定义总览" }));
   const editor = within(await screen.findByRole("dialog", { name: "自定义总览" }));
   expect(editor.queryByRole("checkbox", { name: "快捷操作" })).toBeNull();
   expect(editor.getByRole("checkbox", { name: "最近项目", checked: false })).toBeTruthy();
@@ -60,21 +63,20 @@ it("keeps the order and visibility of saved modules after removing shortcuts", a
 
 it("keeps the sidebar toggle in place and reaches recent projects from the collapsed sidebar", async () => {
   vi.stubGlobal("innerWidth", 1280);
+  mockLocalStorage();
   renderAt("#/");
   const nav = within(screen.getByRole("navigation", { name: "主导航" }));
-  const toggle = screen.getByRole("button", { name: "收起侧栏", expanded: true });
-  expect(toggle.closest("[data-slot=sidebar-header]")).toBeTruthy();
+  const toggle = screen.getByRole("button", { name: "展开侧栏", expanded: false });
+  expect(toggle.closest("header")).toBeTruthy();
   expect(screen.queryByRole("link", { name: "zx-once 总览" })).toBeNull();
   const groupLabel = nav.getByText("工作台");
   expect(nav.queryByRole("button", { name: "工作台" })).toBeNull();
 
-  fireEvent.click(toggle);
-  expect(screen.getByRole("button", { name: "展开侧栏", expanded: false })).toBe(toggle);
-  expect(nav.getByText("工作台")).toBe(groupLabel);
   expect(groupLabel.getAttribute("aria-hidden")).toBe("true");
   fireEvent.click(toggle);
   expect(groupLabel.getAttribute("aria-hidden")).toBe("false");
   fireEvent.click(toggle);
+  expect(screen.getByRole("button", { name: "展开侧栏", expanded: false })).toBe(toggle);
   expect(nav.getByText("工作台")).toBe(groupLabel);
   expect(groupLabel.getAttribute("aria-hidden")).toBe("true");
   fireEvent.click(nav.getByRole("link", { name: "最近使用" }));
@@ -88,6 +90,9 @@ it("keeps the sidebar toggle in place and reaches recent projects from the colla
   expect(screen.getByRole("button", { name: "收起侧栏", expanded: true })).toBe(toggle);
   expect(nav.getByText("工作台")).toBe(groupLabel);
   expect(groupLabel.getAttribute("aria-hidden")).toBe("false");
+  cleanup();
+  renderAt("#/?section=recent");
+  expect(screen.getByRole("button", { name: "收起侧栏", expanded: true })).toBeTruthy();
 });
 
 it("redirects an unknown hash route to the overview", async () => {
@@ -99,7 +104,7 @@ it("redirects an unknown hash route to the overview", async () => {
 
 it("opens island settings directly from the main navigation", async () => {
   renderAt("#/settings");
-  const settings = within(await screen.findByRole("region", { name: "工作台设置" }));
+  const settings = within(await screen.findByRole("navigation", { name: "工作台设置" }));
   expect(settings.queryByRole("link", { name: /灵动岛/ })).toBeNull();
   const nav = within(screen.getByRole("navigation", { name: "主导航" }));
   fireEvent.click(nav.getByRole("link", { name: "灵动岛" }));
@@ -107,6 +112,29 @@ it("opens island settings directly from the main navigation", async () => {
   expect(window.location.hash).toBe("#/island");
   expect(nav.getByRole("link", { name: "灵动岛", current: "page" })).toBeTruthy();
   expect(screen.getByRole("link", { name: "设置" }).hasAttribute("aria-current")).toBe(false);
+});
+
+it("keeps the header and section links outside the scrolling content as pages change", async () => {
+  renderAt("#/projects");
+  const primary = within(screen.getByRole("navigation", { name: "主导航" }));
+  const footer = screen.getByRole("contentinfo", { name: "工作台状态" });
+  const projects = await screen.findByRole("main", { name: "项目" });
+  expect(screen.getAllByRole("navigation")).toHaveLength(1);
+  expect(projects.contains(screen.getByRole("button", { name: "新增项目" }))).toBe(false);
+
+  fireEvent.click(primary.getByRole("link", { name: "Git 工作区" }));
+  const content = await screen.findByRole("main", { name: "Git 工作区" });
+  const title = screen.getByRole("heading", { name: "Git 工作区", level: 1 });
+  const sections = screen.getByRole("navigation", { name: "Git 仓库视图" });
+  expect(content.contains(sections)).toBe(false);
+  expect(content.contains(title)).toBe(false);
+  content.scrollTop = 400;
+  fireEvent.click(within(sections).getByRole("link", { name: "提交历史" }));
+  await waitFor(() => expect(within(sections).getByRole("link", { name: "提交历史", current: "page" })).toBeTruthy());
+  expect(screen.getByRole("main")).toBe(content);
+  expect(content.scrollTop).toBe(0);
+  expect(screen.getByRole("heading", { level: 1 })).toBe(title);
+  expect(screen.getByRole("contentinfo", { name: "工作台状态" })).toBe(footer);
 });
 
 function mockLocalStorage() {

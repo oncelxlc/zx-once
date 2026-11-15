@@ -5,11 +5,11 @@ import { isDefaultDarkSurface, lightSurface } from "./settingsStyles";
 import type { IslandConfig } from "./types";
 import { Amount, Check, Choice, ColorField, IslandSlider } from "./SettingsFields";
 
-export const groups = {
-  overview: "总览", startup: "启动管理", placement: "位置与方向", edge: "边界隐藏",
-  notifications: "通知", appearance: "外观", animation: "动画效果", interaction: "鼠标交互",
-} as const;
-export type Group = keyof typeof groups;
+export const groups = [
+  ["overview", "总览"], ["startup", "启动管理"], ["placement", "位置与方向"], ["edge", "边界隐藏"],
+  ["notifications", "通知"], ["appearance", "外观"], ["animation", "动画效果"], ["interaction", "鼠标交互"],
+] as const;
+type Group = typeof groups[number][0];
 
 type Section = Exclude<keyof IslandConfig, "schemaVersion" | "revision" | "enabled">;
 

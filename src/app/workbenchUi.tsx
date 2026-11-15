@@ -8,23 +8,9 @@ import { Empty, EmptyContent, EmptyHeader, EmptyTitle } from "../components/ui/e
 import { Field, FieldLabel } from "../components/ui/field";
 import { ChoiceSelect } from "./ChoiceSelect";
 import { Skeleton } from "../components/ui/skeleton";
-import { ui } from "./workbenchStyles";
 
 export { ui } from "./workbenchStyles";
 export { Dialog } from "./WorkbenchDialog";
-
-export function PageHeader({ title, description, eyebrow, actions }: {
-  title: string; description?: ReactNode; eyebrow?: ReactNode; actions?: ReactNode;
-}) {
-  return <header {...stylex.props(s.header)}>
-    <div>
-      {eyebrow && <div {...stylex.props(s.eyebrow)}>{eyebrow}</div>}
-      <h1 {...stylex.props(s.title)}>{title}</h1>
-      {description && <p {...stylex.props(s.description)}>{description}</p>}
-    </div>
-    {actions && <div {...stylex.props(ui.row)}>{actions}</div>}
-  </header>;
-}
 
 export function Panel({ title, action, children, id }: { title: ReactNode; action?: ReactNode; children: ReactNode; id?: string }) {
   const heading = useId();
@@ -61,11 +47,6 @@ export function DemoBoundary({ children, permission }: { children: ReactNode; pe
 }
 
 const s = stylex.create({
-  header: { display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12,
-    minHeight: 70, borderBlockEnd: "1px solid var(--border)", paddingBlockEnd: 14 },
-  eyebrow: { marginBlockEnd: 4, fontSize: 12, color: "var(--muted-foreground)", fontWeight: 500 },
-  title: { margin: 0, fontSize: 26, lineHeight: 1.25, letterSpacing: "-0.035em", fontWeight: 650 },
-  description: { margin: "5px 0 0", fontSize: 13, color: "var(--muted-foreground)" },
   scenarios: { display: "flex", justifyContent: "flex-end", marginBlock: -8 },
   skeleton: { width: 180 },
 });

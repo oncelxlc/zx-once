@@ -1,10 +1,11 @@
 import * as stylex from "@stylexjs/stylex";
-import { ArrowDownToLine, ArrowUpFromLine, ChevronsUpDown, FolderGit2, GitBranch as BranchIcon, GitFork, Plus } from "lucide-react";
+import { ArrowDownToLine, ArrowUpFromLine, ChevronsUpDown, GitBranch as BranchIcon, GitFork, Plus } from "lucide-react";
 import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useSearchParams } from "react-router";
 import { addActivity } from "../../app/activitySlice";
-import { DemoBoundary, Dialog, PageHeader, Panel, ui } from "../../app/workbenchUi";
+import { QueryNavigation, WorkbenchPage } from "../../app/WorkbenchPage";
+import { DemoBoundary, Dialog, Panel, ui } from "../../app/workbenchUi";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../../components/ui/table";
 import { Badge } from "../../components/ui/badge";
 import { ChoiceSelect } from "../../app/ChoiceSelect";
@@ -13,19 +14,11 @@ import { Button } from "../../components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "../../components/ui/collapsible";
 import { Empty, EmptyHeader, EmptyTitle } from "../../components/ui/empty";
 import { Field, FieldDescription, FieldGroup, FieldLabel } from "../../components/ui/field";
-import { ResourceTabs } from "../../app/ResourceTabs";
 import { notify } from "../../app/toasts";
 import type { RootState } from "../../store";
 import { cloneSample, commitSample, selectBranch, stageSample, syncSample, type GitBranch, type GitRepository } from "./gitSlice";
 
 const tabs = [["changes", "工作区变更"], ["history", "提交历史"], ["branches", "分支"], ["remotes", "远端"]] as const;
-
-const styles = stylex.create({
-  workspace: { display: "grid", alignItems: "start", gap: 16,
-    gridTemplateColumns: { default: "minmax(164px, 205px) minmax(0, 1fr)", "@media (max-width: 1099px)": "minmax(0, 1fr)" } },
-  repoNav: { display: { default: "block", "@media (max-width: 1099px)": "none" } },
-  repoSelect: { display: { default: "none", "@media (max-width: 1099px)": "grid" } },
-});
 
 export function GitPage() {
   const dispatch = useDispatch();
@@ -48,34 +41,22 @@ export function GitPage() {
     dispatch(addActivity({ text, to: "/git?repo=" + selected.id }));
   }
 
-  return <>
-    <PageHeader title="Git 工作区" description="查看本地仓库的分支、工作区变更与提交记录。"
-      actions={<Button variant="outline" onClick={() => { const next = new URLSearchParams(params); next.set("action", "clone"); setParams(next); }}>
-        <GitFork data-icon="inline-start" aria-hidden="true" /> 克隆仓库</Button>} />
-    <DemoBoundary><div {...stylex.props(styles.workspace)}>
-      <aside aria-label="本地仓库" {...stylex.props(styles.repoNav)}><Panel title="本地仓库" action={<Badge variant="secondary">{repositories.length}</Badge>}>
-        <nav aria-label="选择本地仓库">{repositories.map(item =>
-          <Button key={item.id} nativeButton={false} variant={item.id === repo.id ? "secondary" : "ghost"}
-            className="h-auto w-full items-start justify-start gap-2 px-2.5 py-2 text-left whitespace-normal"
-            render={<Link to={"/git?repo=" + item.id + "&tab=" + tab} aria-current={item.id === repo.id ? "page" : undefined} />}>
-            <FolderGit2 data-icon="inline-start" aria-hidden="true" /><span className="min-w-0 break-words">
-              <strong>{item.name}</strong><small className="block font-mono">{item.currentBranch}</small>
-            </span>
-          </Button>)}</nav>
-      </Panel></aside>
-      <div {...stylex.props(ui.stack)}><div {...stylex.props(ui.toolbar)}>
-        <div {...stylex.props(styles.repoSelect)}><Field><FieldLabel htmlFor="git-local-repo">本地仓库</FieldLabel>
+  return <WorkbenchPage title="Git 工作区" view={tab}
+    navigation={<QueryNavigation label="Git 仓库视图" items={tabs} current={tab} clear={["action", "source"]} />}
+    actions={<Button variant="outline" onClick={() => { const next = new URLSearchParams(params); next.set("action", "clone"); setParams(next); }}>
+      <GitFork data-icon="inline-start" aria-hidden="true" /> 克隆仓库</Button>}>
+    <DemoBoundary><div {...stylex.props(ui.stack)}>
+      <div {...stylex.props(ui.toolbar)}>
+        <Field className="w-auto max-w-full"><FieldLabel htmlFor="git-local-repo">本地仓库</FieldLabel>
           <ChoiceSelect id="git-local-repo" value={repo.id} onValueChange={id => setParams({ repo: id, tab })}
-            options={repositories.map(item => ({ value: item.id, label: item.name }))} />
-        </Field></div>
+            options={repositories.map(item => ({ value: item.id, label: item.name + " · " + item.currentBranch }))} />
+        </Field>
         <Field className="w-auto max-w-full"><FieldLabel htmlFor="git-branch">当前分支</FieldLabel>
           <ChoiceSelect id="git-branch" value={current.name} onValueChange={branchName => dispatch(selectBranch({ repoId: repo.id, branchName }))}
             options={repo.branches.map(item => ({ value: item.name, label: item.name }))} />
         </Field>
       </div>
-      <ResourceTabs label="Git 仓库视图" tabs={tabs} current={tab}>
-        <GitWorkspace key={repo.id + "/" + current.name} repo={repo} branch={current} tab={tab} />
-      </ResourceTabs>
+      <GitWorkspace key={repo.id + "/" + current.name} repo={repo} branch={current} tab={tab} />
       {params.get("action") === "clone" && <Dialog title="克隆演示仓库" onClose={() => {
         const next = new URLSearchParams(params); next.delete("action"); setParams(next, { replace: true });
       }}>
@@ -88,8 +69,8 @@ export function GitPage() {
           <Button onClick={clone}>建立演示工作副本</Button>
         </FieldGroup> : <Empty><EmptyHeader><EmptyTitle>所有演示仓库都已有本地工作副本。</EmptyTitle></EmptyHeader></Empty>}
       </Dialog>}
-    </div></div></DemoBoundary>
-  </>;
+    </div></DemoBoundary>
+  </WorkbenchPage>;
 }
 
 function GitWorkspace({ repo, branch, tab }: {

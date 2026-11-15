@@ -3,7 +3,8 @@ import { PanelsTopLeft } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useLocation } from "react-router";
 import { writePreference } from "./app/localPreferences";
-import { DemoBoundary, PageHeader } from "./app/workbenchUi";
+import { WorkbenchPage } from "./app/WorkbenchPage";
+import { DemoBoundary } from "./app/workbenchUi";
 import { Button } from "./components/ui/button";
 import { Empty, EmptyContent, EmptyHeader, EmptyTitle } from "./components/ui/empty";
 import { OverviewPreferences } from "./features/overview/OverviewPreferences";
@@ -30,9 +31,8 @@ export function WelcomePage() {
       panel?.scrollIntoView?.({ block: "start" });
     }
   }, [target, location.key]);
-  return <>
-    <PageHeader title="工作台总览" description={new Date().toLocaleDateString("zh-CN", { year: "numeric", month: "long", day: "numeric", weekday: "long" })}
-      actions={<Button variant="outline" onClick={() => setEditing(true)}><PanelsTopLeft data-icon="inline-start" aria-hidden="true" />自定义总览</Button>} />
+  return <WorkbenchPage view={target ?? "overview"} title={target === "recent" ? "最近使用" : target === "activity" ? "活动记录" : "工作台总览"}
+    actions={<Button variant="outline" onClick={() => setEditing(true)}><PanelsTopLeft data-icon="inline-start" aria-hidden="true" />自定义总览</Button>}>
     <DemoBoundary key={location.key}>
       {visible.length ? <div {...stylex.props(s.flow)}>
         {visible.map(({ id }) => {
@@ -45,7 +45,7 @@ export function WelcomePage() {
         <EmptyContent><Button variant="outline" onClick={() => update(defaultLayout)}>恢复默认布局</Button></EmptyContent></Empty>}
     </DemoBoundary>
     {editing && <OverviewPreferences layout={layout} update={update} close={() => setEditing(false)} />}
-  </>;
+  </WorkbenchPage>;
 }
 
 const s = stylex.create({

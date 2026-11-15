@@ -1,16 +1,17 @@
 import * as stylex from "@stylexjs/stylex";
 import { Binary, Braces, Clock3, Copy, Eraser, History } from "lucide-react";
 import { useState, type FormEvent } from "react";
-import { useSearchParams } from "react-router";
+import { Link, useSearchParams } from "react-router";
 import { readPreference, writePreference } from "../../app/localPreferences";
-import { PageHeader, Panel, ui } from "../../app/workbenchUi";
+import { SecondaryNav, WorkbenchPage } from "../../app/WorkbenchPage";
+import { Panel, ui } from "../../app/workbenchUi";
 import { ChoiceSelect } from "../../app/ChoiceSelect";
-import { Button } from "../../components/ui/button";
+import { Button, buttonVariants } from "../../components/ui/button";
 import { Empty, EmptyHeader, EmptyTitle } from "../../components/ui/empty";
 import { Field, FieldError, FieldGroup, FieldLabel } from "../../components/ui/field";
 import { Input } from "../../components/ui/input";
 import { Textarea } from "../../components/ui/textarea";
-import { ToggleGroup, ToggleGroupItem } from "../../components/ui/toggle-group";
+import { cn } from "../../lib/utils";
 import { notify } from "../../app/toasts";
 import { convertBase64, convertTimestamp, formatJson, type TimeUnit, type TimeZone } from "./conversions";
 
@@ -23,7 +24,7 @@ type Tool = (typeof tools)[number];
 const recentKey = "zx-once.toolbox.recent.v1";
 
 export function ToolboxPage() {
-  const [params, setParams] = useSearchParams();
+  const [params] = useSearchParams();
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("");
   const [recent, setRecent] = useState(() => {
@@ -39,34 +40,33 @@ export function ToolboxPage() {
     setRecent(next);
     writePreference(recentKey, next.map(item => item.id));
   }
-  function open(tool: Tool) {
-    remember(tool);
-    setParams({ tool: tool.id });
-  }
-  return <>
-    <PageHeader eyebrow="开发辅助" title="工具箱" description="在本地格式化文本、转换编码和时间戳。" />
-    <div {...stylex.props(ui.toolbar)}>
-      <Input type="search" className="min-w-40 max-w-xs flex-1" aria-label="搜索工具" placeholder="搜索工具" value={query} onChange={event => setQuery(event.target.value)} />
-      <ChoiceSelect value={category} aria-label="工具分类" onValueChange={setCategory}
-        options={[{ value: "", label: "全部分类" }, { value: "文本", label: "文本" }, { value: "数据", label: "数据" }]} />
-    </div>
-    {visible.length ? <ToggleGroup aria-label="选择工具" variant="outline" spacing={3}
-      className="grid w-full grid-cols-[repeat(auto-fit,minmax(min(100%,15rem),1fr))]" value={selected ? [selected.id] : []}
-      onValueChange={([id]) => {
-        const tool = visible.find(item => item.id === id);
-        if (tool) open(tool);
-      }}>
-      {visible.map(tool => <ToggleGroupItem key={tool.id} value={tool.id} className="h-auto min-h-14 justify-start gap-2.5 px-4 py-2.5">
-        <tool.icon data-icon="inline-start" aria-hidden="true" /><span>{tool.title}</span>
-        <small className="text-muted-foreground group-hover/toggle:text-foreground group-aria-pressed/toggle:text-accent-foreground">{tool.category}</small>
-      </ToggleGroupItem>)}
-    </ToggleGroup> : <Empty role="status"><EmptyHeader><EmptyTitle>没有匹配的工具。</EmptyTitle></EmptyHeader></Empty>}
-    {!!recent.length && <div {...stylex.props(ui.row)}>
-      <History className="size-4 shrink-0" aria-hidden="true" /><span {...stylex.props(ui.muted)}>最近使用</span>
-      {recent.map(tool => <Button variant="outline" key={tool.id} onClick={() => open(tool)}>{tool.title}</Button>)}
-    </div>}
-    {selected && <ToolEditor key={selected.id} tool={selected} remember={() => remember(selected)} />}
-  </>;
+  const links = [
+    { label: "全部工具", to: "/toolbox", active: !selected },
+    ...tools.map(tool => ({
+      label: tool.title, to: "?tool=" + tool.id, active: selected === tool, onClick: () => remember(tool),
+    })),
+  ];
+  return <WorkbenchPage title="工具箱" view={selected?.id} navigation={<SecondaryNav label="工具导航" links={links} />}>
+    {selected ? <ToolEditor key={selected.id} tool={selected} remember={() => remember(selected)} /> : <>
+      <div {...stylex.props(ui.toolbar)}>
+        <Input type="search" className="min-w-40 max-w-xs flex-1" aria-label="搜索工具" placeholder="搜索工具" value={query} onChange={event => setQuery(event.target.value)} />
+        <ChoiceSelect value={category} aria-label="工具分类" onValueChange={setCategory}
+          options={[{ value: "", label: "全部分类" }, { value: "文本", label: "文本" }, { value: "数据", label: "数据" }]} />
+      </div>
+      {visible.length ? <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,15rem),1fr))] gap-3">
+        {visible.map(tool => <Link key={tool.id} to={"?tool=" + tool.id} onClick={() => remember(tool)}
+          className={cn(buttonVariants({ variant: "outline" }), "h-auto min-h-14 justify-start gap-2.5 px-4 py-2.5")}>
+          <tool.icon data-icon="inline-start" aria-hidden="true" /><span>{tool.title}</span>
+          <small className="text-muted-foreground">{tool.category}</small>
+        </Link>)}
+      </div> : <Empty role="status"><EmptyHeader><EmptyTitle>没有匹配的工具。</EmptyTitle></EmptyHeader></Empty>}
+      {!!recent.length && <div {...stylex.props(ui.row)}>
+        <History className="size-4 shrink-0" aria-hidden="true" /><span {...stylex.props(ui.muted)}>最近使用</span>
+        {recent.map(tool => <Link key={tool.id} to={"?tool=" + tool.id} onClick={() => remember(tool)}
+          className={buttonVariants({ variant: "outline" })}>{tool.title}</Link>)}
+      </div>}
+    </>}
+  </WorkbenchPage>;
 }
 
 function ToolEditor({ tool, remember }: { tool: Tool; remember: () => void }) {

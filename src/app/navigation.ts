@@ -45,7 +45,7 @@ export interface Preferences {
 
 export const defaults: Preferences = {
   theme: "system",
-  sidebar: "auto",
+  sidebar: "collapsed",
   groups: [
     { id: "workbench", title: "工作台", items: ["overview", "recent", "activity", "island"], hidden: false },
     { id: "local", title: "本地开发", items: ["projects", "git", "environment", "toolchain"], hidden: false },

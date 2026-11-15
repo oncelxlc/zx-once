@@ -1,18 +1,17 @@
-import { Check, ChevronRight, ListTree, Monitor, Moon, Palette, Sun } from "lucide-react";
+import { Check, Monitor, Moon, Sun } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
-import { Link, useLocation } from "react-router";
-import { Button } from "../components/ui/button";
-import { Item, ItemActions, ItemContent, ItemDescription, ItemGroup, ItemMedia, ItemTitle } from "../components/ui/item";
+import { useLocation } from "react-router";
 import { ToggleGroup, ToggleGroupItem } from "../components/ui/toggle-group";
 import type { RootState } from "../store";
 import { NavigationEditor } from "./NavigationEditor";
 import type { Theme } from "./navigation";
 import { setTheme } from "./preferencesSlice";
-import { PageHeader, Panel } from "./workbenchUi";
+import { SecondaryNav, WorkbenchPage } from "./WorkbenchPage";
+import { Panel } from "./workbenchUi";
 
 const sections = [
-  { to: "/settings/appearance", title: "外观", summary: "选择工作台的浅色、深色或系统主题", icon: Palette },
-  { to: "/settings/navigation", title: "导航自定义", summary: "排列分组和页面，管理侧栏收藏", icon: ListTree },
+  { to: "/settings/appearance", label: "外观" },
+  { to: "/settings/navigation", label: "导航自定义" },
 ];
 
 const themes = [
@@ -25,19 +24,10 @@ export function SettingsPage() {
   const { pathname } = useLocation();
   const theme = useSelector((state: RootState) => state.preferences.theme);
   const dispatch = useDispatch();
-  const section = sections.find(item => item.to === pathname);
-  return <>
-    {section && <div><Button variant="link" size="sm" nativeButton={false} render={<Link to="/settings" />}>返回设置</Button></div>}
-    <PageHeader title={section?.title ?? "设置"} description={section?.summary ?? "管理工作台外观与导航。"} />
-    {!section && <Panel title="工作台设置">
-      <ItemGroup className="has-data-[size=sm]:gap-[3px]">{sections.map(({ to, title, summary, icon: Icon }) =>
-        <div key={to} role="listitem"><Item render={<Link to={to} />} variant="outline" size="sm">
-          <ItemMedia variant="icon" className="size-9"><Icon aria-hidden="true" /></ItemMedia>
-          <ItemContent><ItemTitle>{title}</ItemTitle><ItemDescription>{summary}</ItemDescription></ItemContent>
-          <ItemActions><ChevronRight size={16} aria-hidden="true" /></ItemActions>
-        </Item></div>)}</ItemGroup>
-    </Panel>}
-    {pathname === "/settings/appearance" && <Panel title="工作台主题">
+  const section = sections.find(item => item.to === pathname) ?? sections[0];
+  return <WorkbenchPage title="设置" view={section.to} navigation={<SecondaryNav label="工作台设置"
+    links={sections.map(item => ({ ...item, active: item === section }))} />}>
+    {section.to === "/settings/navigation" ? <NavigationEditor /> : <Panel title="工作台主题">
       <ToggleGroup aria-label="工作台主题" className="grid w-full grid-cols-[repeat(auto-fit,minmax(min(140px,100%),1fr))] gap-2.5"
         value={[theme]} onValueChange={values => {
         const next = themes.find(item => item.id === values[0]);
@@ -49,6 +39,5 @@ export function SettingsPage() {
           </ToggleGroupItem>)}
       </ToggleGroup>
     </Panel>}
-    {pathname === "/settings/navigation" && <NavigationEditor />}
-  </>;
+  </WorkbenchPage>;
 }

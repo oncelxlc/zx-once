@@ -1,9 +1,10 @@
 import { Settings } from "lucide-react";
+import { Fragment } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useLocation } from "react-router";
 import { ContextMenu, ContextMenuContent, ContextMenuGroup, ContextMenuItem, ContextMenuTrigger } from "../components/ui/context-menu";
 import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent, SidebarGroupLabel,
-  SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarTrigger, useSidebar } from "../components/ui/sidebar";
+  SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarSeparator, SidebarTrigger, useSidebar } from "../components/ui/sidebar";
 import type { RootState } from "../store";
 import { activeDestination, destinations, type NavId } from "./navigation";
 import { moveItem, resetNavigation, toggleHidden, togglePin } from "./preferencesSlice";
@@ -39,7 +40,6 @@ export function AppSidebar() {
   const { groups, pins, hidden } = useSelector((state: RootState) => state.preferences);
   const { isMobile, open, openMobile, setOpenMobile } = useSidebar();
   const compact = !isMobile && !open;
-  const toggleLabel = isMobile ? "关闭导航" : open ? "收起侧栏" : "展开侧栏";
   const { pathname, search } = useLocation();
   const visibleGroups = groups.filter(group => !group.hidden);
   const visible = visibleGroups.flatMap(group => group.items.filter(id => !hidden.includes(id)));
@@ -50,22 +50,26 @@ export function AppSidebar() {
 
   function renderGroup(id: string, title: string, items: NavId[]) {
     if (!items.length) return null;
-    return <SidebarGroup key={id} className="border-b border-transparent transition-colors duration-200 ease-linear group-data-[collapsible=icon]:border-sidebar-border motion-reduce:transition-none">
-      <SidebarGroupLabel aria-hidden={compact}>{title}</SidebarGroupLabel>
-      <SidebarGroupContent><SidebarMenu>
-        {items.map(item => <SidebarItem key={item} id={item} current={item === current} onNavigate={leave} />)}
-      </SidebarMenu></SidebarGroupContent>
-    </SidebarGroup>;
+    return <Fragment key={id}>
+      <SidebarSeparator aria-hidden="true" className="first:hidden" />
+      <SidebarGroup>
+        <SidebarGroupLabel aria-hidden={compact}>{title}</SidebarGroupLabel>
+        <SidebarGroupContent><SidebarMenu>
+          {items.map(item => <SidebarItem key={item} id={item} current={item === current} onNavigate={leave} />)}
+        </SidebarMenu></SidebarGroupContent>
+      </SidebarGroup>
+    </Fragment>;
   }
-  return <Sidebar collapsible="icon" className="bottom-7 h-auto">
-    <SidebarHeader className="shrink-0 items-start">
-      <SidebarTrigger size="icon" aria-label={toggleLabel} title={toggleLabel} aria-expanded={isMobile ? openMobile : open} />
-    </SidebarHeader>
-    <SidebarContent role="navigation" aria-label="主导航" className="group-data-[collapsible=icon]:overflow-y-auto">
+  return <Sidebar collapsible="icon">
+    {isMobile && <SidebarHeader className="shrink-0 items-start">
+      <SidebarTrigger size="icon" aria-label="关闭导航" title="关闭导航" aria-expanded={openMobile} />
+    </SidebarHeader>}
+    <SidebarContent role="navigation" aria-label="主导航">
       {renderGroup("favorites", "收藏", favorites)}
       {visibleGroups.map(group => renderGroup(group.id, group.title, group.items.filter(id => visible.includes(id) && !favorites.includes(id))))}
     </SidebarContent>
-    <SidebarFooter className="border-t border-sidebar-border">
+    <SidebarSeparator aria-hidden="true" />
+    <SidebarFooter className="shrink-0">
       <SidebarMenu><SidebarMenuItem>
         <SidebarMenuButton render={<Link to="/settings" />} isActive={settings} tooltip="设置"
           aria-label="设置" aria-current={settings ? "page" : undefined} onClick={leave}>

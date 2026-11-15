@@ -24,7 +24,7 @@ interface Props {
 export function NotificationSettings({ enabled, listening, status, change, perform, refresh }: Props) {
   return <>
     <Check label="启用通知" value={enabled} change={change} />
-    <FieldDescription>灵动岛会自动显示正在运行的受支持应用。有 Windows 系统提醒时，应用图标旁会出现红点。</FieldDescription>
+    <FieldDescription>启用后显示受支持的运行中应用，收到 Windows 通知时在图标旁显示红点。</FieldDescription>
     {enabled && listening && <section aria-label="Windows 通知访问">
       <h3>Windows 通知访问</h3>
       <FieldDescription role="status">{status ? permissionLabels[status.permission] : "正在读取访问状态…"}</FieldDescription>

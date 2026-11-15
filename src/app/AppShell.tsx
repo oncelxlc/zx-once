@@ -1,35 +1,22 @@
 import * as stylex from "@stylexjs/stylex";
 import { Cable, Terminal } from "lucide-react";
-import { Suspense, useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } from "react";
+import { Suspense, useEffect, useLayoutEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, Outlet, useLocation } from "react-router";
 import { version } from "../../package.json";
 import { Button } from "../components/ui/button";
 import { Separator } from "../components/ui/separator";
-import { SidebarInset, SidebarProvider, SidebarTrigger, useSidebar } from "../components/ui/sidebar";
+import { SidebarProvider, useSidebar } from "../components/ui/sidebar";
 import { TooltipProvider } from "../components/ui/tooltip";
 import type { RootState } from "../store";
 import { AppSidebar } from "./AppSidebar";
-import { DetailPanelHost } from "./WorkbenchDialog";
+import { AppTopBar } from "./AppTopBar";
 import { persistPreferences, setSidebar } from "./preferencesSlice";
 import { shell } from "./shellStyles";
-
-const sidebarSize = { "--sidebar-width": "232px", minHeight: 0 };
-
-function watchWidth(update: () => void) {
-  window.addEventListener("resize", update);
-  return () => window.removeEventListener("resize", update);
-}
-function windowSize() {
-  if (window.innerWidth < 1100) return "small";
-  return window.innerWidth < 1440 ? "desktop" : "wide";
-}
 
 export function AppShell() {
   const preferences = useSelector((state: RootState) => state.preferences);
   const dispatch = useDispatch();
-  const size = useSyncExternalStore(watchWidth, windowSize, () => "desktop");
-  const expanded = preferences.sidebar === "expanded" || (preferences.sidebar === "auto" && size !== "small");
 
   useEffect(() => { persistPreferences(preferences); }, [preferences]);
   useLayoutEffect(() => {
@@ -46,38 +33,25 @@ export function AppShell() {
   }, [preferences.theme]);
 
   return <TooltipProvider>
-    <div {...stylex.props(shell.frame)}>
-      <SidebarProvider {...stylex.props(shell.workspace)} style={sidebarSize} open={expanded}
-        onOpenChange={open => dispatch(setSidebar(open ? "expanded" : "collapsed"))}>
-        <AppSidebar />
-        <Workspace wide={size === "wide"} />
-      </SidebarProvider>
+    <SidebarProvider className="h-dvh min-h-0 flex-col overflow-hidden bg-background text-foreground"
+      open={preferences.sidebar === "expanded"}
+      onOpenChange={open => dispatch(setSidebar(open ? "expanded" : "collapsed"))}>
+      <Button variant="outline" size="sm" className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50"
+        onClick={() => document.getElementById("workbench-content")?.focus()}>跳到主内容</Button>
+      <AppTopBar />
+      <Workspace />
       <StatusBar />
-    </div>
+    </SidebarProvider>
   </TooltipProvider>;
 }
 
-function Workspace({ wide }: { wide: boolean }) {
-  const { isMobile, openMobile, setOpenMobile } = useSidebar();
-  const [detailHost, setDetailHost] = useState<HTMLDivElement | null>(null);
-  const content = useRef<HTMLElement>(null);
+function Workspace() {
+  const { isMobile, setOpenMobile } = useSidebar();
   const location = useLocation();
   useEffect(() => { setOpenMobile(false); }, [isMobile, location.key, setOpenMobile]);
-  useLayoutEffect(() => { if (content.current) content.current.scrollTop = 0; }, [location.pathname]);
-  return <div className="flex min-h-0 min-w-0 flex-1 flex-col">
-    <Button variant="outline" size="sm" className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50"
-      onClick={() => content.current?.focus()}>跳到主内容</Button>
-    {isMobile && <header {...stylex.props(shell.mobileBar)}>
-      <SidebarTrigger size="icon" aria-label="打开导航" aria-expanded={openMobile} title="打开导航" />
-    </header>}
-    <div className="flex min-h-0 flex-1">
-      <DetailPanelHost.Provider value={wide ? detailHost : null}>
-        <SidebarInset ref={content} id="workbench-content" tabIndex={-1} {...stylex.props(shell.main)}>
-          <Suspense fallback={<p role="status">正在打开页面…</p>}><Outlet /></Suspense>
-        </SidebarInset>
-      </DetailPanelHost.Provider>
-      <div ref={setDetailHost} className="shrink-0 overflow-auto border-l bg-card empty:hidden" />
-    </div>
+  return <div className="flex min-h-0 min-w-0 flex-1 overflow-hidden">
+    <AppSidebar />
+    <Suspense fallback={<p role="status" className="p-4">正在打开页面…</p>}><Outlet /></Suspense>
   </div>;
 }
 

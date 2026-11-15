@@ -3,7 +3,8 @@ import { ExternalLink, GitPullRequest, CircleDot } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useSearchParams } from "react-router";
-import { DemoBoundary, Dialog, PageHeader, Panel, ui } from "../../app/workbenchUi";
+import { SecondaryNav, WorkbenchPage } from "../../app/WorkbenchPage";
+import { DemoBoundary, Dialog, Panel, ui } from "../../app/workbenchUi";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../../components/ui/table";
 import { ChoiceSelect } from "../../app/ChoiceSelect";
 import { Input } from "../../components/ui/input";
@@ -11,7 +12,6 @@ import { Button } from "../../components/ui/button";
 import { Badge } from "../../components/ui/badge";
 import { Empty, EmptyHeader, EmptyTitle } from "../../components/ui/empty";
 import { Field, FieldLabel } from "../../components/ui/field";
-import { ResourceTabs } from "../../app/ResourceTabs";
 import type { RootState } from "../../store";
 import { chooseAccount } from "./githubSlice";
 
@@ -47,16 +47,20 @@ export function GitHubPage() {
     setParams(next, { replace: true });
   }
 
-  return <>
-    <PageHeader title="GitHub" description="按账户查看演示仓库、协作事项与最近活动。" />
+  const sections = tabs.map(([value, label]) => {
+    const search = new URLSearchParams(params);
+    search.delete("repo");
+    search.set("account", activeAccount);
+    search.set("tab", value);
+    return { label, to: { search: search.toString() }, active: value === tab };
+  });
+  return <WorkbenchPage title="GitHub" view={tab} navigation={<SecondaryNav label="GitHub 资源" links={sections} />}>
     <DemoBoundary permission><div {...stylex.props(ui.stack)}>
       <div {...stylex.props(ui.toolbar)}><Field className="w-auto max-w-full"><FieldLabel htmlFor="github-account">演示账户</FieldLabel>
         <ChoiceSelect id="github-account" value={activeAccount} options={accounts.map(account => ({ value: account.id, label: account.name }))}
           onValueChange={account => { dispatch(chooseAccount(account)); setParams({ account, tab }); }} />
       </Field><span {...stylex.props(ui.muted)}>{owned.length} 个仓库 · {accountItems.filter(item => item.state === "open").length} 个待处理事项</span></div>
-      <ResourceTabs label="GitHub 资源" tabs={tabs} current={tab}>
-        <HubList key={activeAccount + "/" + tab} tab={tab} owned={owned} items={accountItems} openRepo={viewRepo} />
-      </ResourceTabs>
+      <HubList key={activeAccount + "/" + tab} tab={tab} owned={owned} items={accountItems} openRepo={viewRepo} />
       {detail && <Dialog title={detail.name} onClose={closeDetail} side>
         <div {...stylex.props(ui.stack)}><strong {...stylex.props(ui.mono)}>{detail.owner}/{detail.name}</strong>
           <p>{detail.description}</p><span {...stylex.props(ui.muted)}>{detail.visibility === "Public" ? "公开" : "私有"} · 默认分支 {detail.defaultBranch}</span>
@@ -72,7 +76,7 @@ export function GitHubPage() {
         </div>
       </Dialog>}
     </div></DemoBoundary>
-  </>;
+  </WorkbenchPage>;
 }
 
 function HubList({ tab, owned, items, openRepo }: {

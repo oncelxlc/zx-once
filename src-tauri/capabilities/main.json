@@ -1,7 +1,18 @@
 {
   "identifier": "main",
-  "description": "The local settings window manages the island.",
+  "description": "The local workbench manages its Windows title bar and the island.",
   "windows": ["main"],
   "platforms": ["windows"],
-  "permissions": ["core:event:allow-listen", "core:event:allow-unlisten", "island-read", "island-settings"]
+  "permissions": [
+    "core:event:allow-listen",
+    "core:event:allow-unlisten",
+    "core:window:allow-set-decorations",
+    "core:window:allow-is-maximized",
+    "core:window:allow-start-dragging",
+    "core:window:allow-toggle-maximize",
+    "core:window:allow-minimize",
+    "core:window:allow-close",
+    "island-read",
+    "island-settings"
+  ]
 }

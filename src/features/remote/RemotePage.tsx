@@ -4,13 +4,13 @@ import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useSearchParams } from "react-router";
 import { addActivity } from "../../app/activitySlice";
-import { DemoBoundary, Dialog, PageHeader, Panel, ui } from "../../app/workbenchUi";
+import { QueryNavigation, WorkbenchPage } from "../../app/WorkbenchPage";
+import { DemoBoundary, Dialog, Panel, ui } from "../../app/workbenchUi";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../../components/ui/table";
 import { Badge } from "../../components/ui/badge";
 import { ChoiceSelect } from "../../app/ChoiceSelect";
 import { Button } from "../../components/ui/button";
 import { Field, FieldLabel } from "../../components/ui/field";
-import { ResourceTabs } from "../../app/ResourceTabs";
 import type { RootState } from "../../store";
 import { RemoteFiles } from "./RemoteFiles";
 import { RemoteTerminal } from "./RemoteTerminal";
@@ -36,37 +36,34 @@ export function RemotePage() {
     dispatch(addActivity({ text: (connected ? "模拟断开 " : "模拟连接 ") + host.name, to: "/remote?host=" + host.id }));
   }
 
-  return <>
-    <PageHeader title="远程中心" description="按主机查看 SSH 连接、服务器资源与部署记录。" />
+  return <WorkbenchPage title="远程中心" view={tab} navigation={<QueryNavigation label="远程主机功能" items={tabs} current={tab} />}>
     <DemoBoundary permission><div {...stylex.props(ui.stack)}>
       <div {...stylex.props(ui.toolbar)}><Field className="w-auto max-w-full"><FieldLabel htmlFor="remote-host">当前主机</FieldLabel>
         <ChoiceSelect id="remote-host" value={host.id} onValueChange={id => setParams({ host: id, tab })}
           options={servers.map(item => ({ value: item.id, label: item.name }))} />
       </Field><Badge variant={connected ? "success" : "outline"} role="status">{connected ? "已模拟连接" : "已断开"}</Badge>
         <span {...stylex.props(ui.muted)}>{host.os}</span></div>
-      <ResourceTabs label="远程主机功能" tabs={tabs} current={tab}>
-        {tab === "connections" && connection && <Panel title={connection.alias}
-          action={<Button variant={connected ? "outline" : "default"} onClick={toggle}>
-            {connected ? <Unplug data-icon="inline-start" aria-hidden="true" /> : <Cable data-icon="inline-start" aria-hidden="true" />}
-            {connected ? "模拟断开" : "模拟连接"}</Button>}>
-          <Metrics values={[
-            ["主机地址", connection.host], ["端口", String(connection.port)], ["用户", connection.user],
-            ["认证方式", connection.authType], ["上次连接", connection.lastConnected], ["关联服务器", host.name],
-          ]} />
-        </Panel>}
-        {tab === "servers" && <Panel title={host.name} action={<Badge variant="outline">样本指标</Badge>}>
-          <Metrics values={[
-            ["CPU", host.cpu], ["内存", host.memory], ["磁盘", host.disk], ["运行时间", host.uptime],
-            ["操作系统", host.os], ["采样时间", host.sampledAt],
-          ]} />
-        </Panel>}
-        {tab === "files" && <RemoteFiles key={host.id} host={host} connected={connected} />}
-        {tab === "terminal" && <RemoteTerminal key={host.id} host={host} connected={connected} />}
-        {tab === "docker" && <Docker key={host.id} host={host} />}
-        {tab === "deployments" && <Deployments key={host.id} host={host} />}
-      </ResourceTabs>
+      {tab === "connections" && connection && <Panel title={connection.alias}
+        action={<Button variant={connected ? "outline" : "default"} onClick={toggle}>
+          {connected ? <Unplug data-icon="inline-start" aria-hidden="true" /> : <Cable data-icon="inline-start" aria-hidden="true" />}
+          {connected ? "模拟断开" : "模拟连接"}</Button>}>
+        <Metrics values={[
+          ["主机地址", connection.host], ["端口", String(connection.port)], ["用户", connection.user],
+          ["认证方式", connection.authType], ["上次连接", connection.lastConnected], ["关联服务器", host.name],
+        ]} />
+      </Panel>}
+      {tab === "servers" && <Panel title={host.name} action={<Badge variant="outline">样本指标</Badge>}>
+        <Metrics values={[
+          ["CPU", host.cpu], ["内存", host.memory], ["磁盘", host.disk], ["运行时间", host.uptime],
+          ["操作系统", host.os], ["采样时间", host.sampledAt],
+        ]} />
+      </Panel>}
+      {tab === "files" && <RemoteFiles key={host.id} host={host} connected={connected} />}
+      {tab === "terminal" && <RemoteTerminal key={host.id} host={host} connected={connected} />}
+      {tab === "docker" && <Docker key={host.id} host={host} />}
+      {tab === "deployments" && <Deployments key={host.id} host={host} />}
     </div></DemoBoundary>
-  </>;
+  </WorkbenchPage>;
 }
 
 const styles = stylex.create({

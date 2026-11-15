@@ -1,5 +1,6 @@
-import { invoke, isTauri } from "@tauri-apps/api/core";
+import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
+import { isWindowsDesktop } from "../../lib/isWindowsDesktop";
 import type { IslandConfig, IslandState } from "./types";
 
 export interface IslandDisplay {
@@ -46,7 +47,7 @@ interface IslandEvents {
 }
 
 export const islandApi = {
-  isDesktop: () => typeof window !== "undefined" && isTauri() && /Windows/i.test(window.navigator.userAgent),
+  isDesktop: isWindowsDesktop,
   config: () => invoke<IslandConfig>("island_get_config"),
   status: () => invoke<RuntimeStatus>("island_get_runtime_status"),
   notifications: () => invoke<NotificationStatus>("island_get_notifications"),
