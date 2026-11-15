@@ -54,7 +54,7 @@ export function GitHubPage() {
     search.set("tab", value);
     return { label, to: { search: search.toString() }, active: value === tab };
   });
-  return <WorkbenchPage title="GitHub" view={tab} navigation={<SecondaryNav label="GitHub 资源" links={sections} />}>
+  return <WorkbenchPage title="GitHub" view={tab} resource={["account", activeAccount]} navigation={<SecondaryNav label="GitHub 资源" links={sections} />}>
     <DemoBoundary permission><div {...stylex.props(ui.stack)}>
       <div {...stylex.props(ui.toolbar)}><Field className="w-auto max-w-full"><FieldLabel htmlFor="github-account">演示账户</FieldLabel>
         <ChoiceSelect id="github-account" value={activeAccount} options={accounts.map(account => ({ value: account.id, label: account.name }))}

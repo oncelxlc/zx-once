@@ -36,7 +36,7 @@ export function RemotePage() {
     dispatch(addActivity({ text: (connected ? "模拟断开 " : "模拟连接 ") + host.name, to: "/remote?host=" + host.id }));
   }
 
-  return <WorkbenchPage title="远程中心" view={tab} navigation={<QueryNavigation label="远程主机功能" items={tabs} current={tab} />}>
+  return <WorkbenchPage title="远程中心" view={tab} resource={["host", host.id]} navigation={<QueryNavigation label="远程主机功能" items={tabs} current={tab} />}>
     <DemoBoundary permission><div {...stylex.props(ui.stack)}>
       <div {...stylex.props(ui.toolbar)}><Field className="w-auto max-w-full"><FieldLabel htmlFor="remote-host">当前主机</FieldLabel>
         <ChoiceSelect id="remote-host" value={host.id} onValueChange={id => setParams({ host: id, tab })}

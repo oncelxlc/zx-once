@@ -4,15 +4,17 @@ import { buttonVariants } from "../components/ui/button";
 import { SidebarInset } from "../components/ui/sidebar";
 import { cn } from "../lib/utils";
 import { DetailPanelHost } from "./WorkbenchDialog";
+import { useRecordWorkbenchPage } from "./useWorkbenchNavigation";
 
 function watchWidth(update: () => void) {
   window.addEventListener("resize", update);
   return () => window.removeEventListener("resize", update);
 }
 
-export function WorkbenchPage({ title, actions, navigation, view, children }: {
-  title: string; actions?: ReactNode; navigation?: ReactNode; view?: string; children: ReactNode;
+export function WorkbenchPage({ title, actions, navigation, view, resource, children }: {
+  title: string; actions?: ReactNode; navigation?: ReactNode; view?: string; resource?: readonly [string, string]; children: ReactNode;
 }) {
+  useRecordWorkbenchPage(view, resource);
   const wide = useSyncExternalStore(watchWidth, () => window.innerWidth >= 1440, () => false);
   const [detailHost, setDetailHost] = useState<HTMLDivElement | null>(null);
   const content = useRef<HTMLElement>(null);

@@ -48,6 +48,8 @@ pub fn install(builder: tauri::Builder<tauri::Wry>) -> tauri::Builder<tauri::Wry
             }
         })
         .invoke_handler(tauri::generate_handler![
+            crate::window_chrome::set_main_window_chrome,
+            crate::caption_navigation::set_main_window_navigation,
             main_window_restore,
             island_get_config,
             island_update_config,

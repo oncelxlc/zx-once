@@ -66,8 +66,10 @@ it("keeps the sidebar toggle in place and reaches recent projects from the colla
   mockLocalStorage();
   renderAt("#/");
   const nav = within(screen.getByRole("navigation", { name: "主导航" }));
-  const toggle = screen.getByRole("button", { name: "展开侧栏", expanded: false });
-  expect(toggle.closest("header")).toBeTruthy();
+  const toggle = screen.getByRole("button", { name: "展开导航", expanded: false });
+  expect(toggle.closest("footer")).toBeTruthy();
+  expect(nav.queryByRole("button", { name: "展开导航" })).toBeNull();
+  expect(screen.getAllByRole("banner")).toHaveLength(1);
   expect(screen.queryByRole("link", { name: "zx-once 总览" })).toBeNull();
   const groupLabel = nav.getByText("工作台");
   expect(nav.queryByRole("button", { name: "工作台" })).toBeNull();
@@ -76,7 +78,7 @@ it("keeps the sidebar toggle in place and reaches recent projects from the colla
   fireEvent.click(toggle);
   expect(groupLabel.getAttribute("aria-hidden")).toBe("false");
   fireEvent.click(toggle);
-  expect(screen.getByRole("button", { name: "展开侧栏", expanded: false })).toBe(toggle);
+  expect(screen.getByRole("button", { name: "展开导航", expanded: false })).toBe(toggle);
   expect(nav.getByText("工作台")).toBe(groupLabel);
   expect(groupLabel.getAttribute("aria-hidden")).toBe("true");
   fireEvent.click(nav.getByRole("link", { name: "最近使用" }));
@@ -87,12 +89,12 @@ it("keeps the sidebar toggle in place and reaches recent projects from the colla
   expect(document.activeElement).toBe(recent.closest("[tabindex]"));
 
   fireEvent.click(toggle);
-  expect(screen.getByRole("button", { name: "收起侧栏", expanded: true })).toBe(toggle);
+  expect(screen.getByRole("button", { name: "收起导航", expanded: true })).toBe(toggle);
   expect(nav.getByText("工作台")).toBe(groupLabel);
   expect(groupLabel.getAttribute("aria-hidden")).toBe("false");
   cleanup();
   renderAt("#/?section=recent");
-  expect(screen.getByRole("button", { name: "收起侧栏", expanded: true })).toBeTruthy();
+  expect(screen.getByRole("button", { name: "收起导航", expanded: true })).toBeTruthy();
 });
 
 it("redirects an unknown hash route to the overview", async () => {
@@ -100,6 +102,23 @@ it("redirects an unknown hash route to the overview", async () => {
 
   await waitFor(() => expect(window.location.hash).toBe("#/"));
   expect(screen.getByRole("heading", { level: 1, name: "工作台总览" })).toBeTruthy();
+});
+
+it("opens the browser navigation without adding a toggle to the page header", async () => {
+  vi.stubGlobal("innerWidth", 390);
+  renderAt("#/");
+  const header = screen.getByRole("banner");
+  expect(within(header).queryByRole("button", { name: "展开导航" })).toBeNull();
+  fireEvent.click(screen.getByRole("button", { name: "展开导航", expanded: false }));
+  const drawer = await screen.findByRole("dialog", { name: "主导航" });
+  fireEvent.click(within(drawer).getByRole("link", { name: "项目" }));
+
+  await screen.findByRole("main", { name: "项目" });
+  expect(screen.getByRole("button", { name: "展开导航", expanded: false })).toBeTruthy();
+  fireEvent.keyDown(window, { key: "b", ctrlKey: true });
+  const reopened = await screen.findByRole("dialog", { name: "主导航" });
+  fireEvent.click(within(reopened).getByRole("button", { name: "关闭导航" }));
+  await waitFor(() => expect(screen.queryByRole("dialog", { name: "主导航" })).toBeNull());
 });
 
 it("opens island settings directly from the main navigation", async () => {

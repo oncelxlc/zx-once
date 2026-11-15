@@ -14,6 +14,8 @@
       {
         "label": "main",
         "title": "zx-once",
+        "decorations": true,
+        "resizable": true,
         "width": 1600,
         "minWidth": 1280,
         "height": 900,

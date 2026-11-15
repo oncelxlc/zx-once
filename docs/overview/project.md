@@ -7,10 +7,11 @@ zx-once 在浏览器和桌面主窗口中加载同一套 React 工作台。项�
 | 位置 | 职责 |
 | --- | --- |
 | [前端启动](../../src/main.tsx)、[路由](../../src/App.tsx) | 启动时尝试恢复桌面窗口快照，创建 Redux store，再挂载 HashRouter。首页为 `#/`。 |
-| [工作台外壳](../../src/app/AppShell.tsx)、[共享页面布局](../../src/app/WorkbenchPage.tsx)、[业务模块](../../src/features/)、[共享状态](../../src/store.ts) | 外壳管理顶栏、主导航和状态栏。各页把标题、操作和已有子页面的导航传给共享布局，页头、二级导航与正文各占独立区域。业务模块通过 Redux 共享会话数据。 |
+| [工作台外壳](../../src/app/AppShell.tsx)、[共享页面布局](../../src/app/WorkbenchPage.tsx)、[业务模块](../../src/features/)、[共享状态](../../src/store.ts) | 外壳管理主导航和状态栏。各页把标题、操作和已有子页面的导航传给共享布局，页头、二级导航与正文各占独立区域。业务模块通过 Redux 共享会话数据。 |
 | [基础组件](../../src/components/ui/)、[组件配置](../../components.json)、[全局样式](../../src/styles.css) | shadcn/ui 使用 Base Nova 和 Neutral 基础配置，组件样式由 Tailwind CSS 编译。页面布局与岛体预览使用 StyleX，图标来自 lucide-react。 |
 | [桌面入口](../../src-tauri/src/lib.rs)、[灵动岛](../../src-tauri/src/island/) | Windows 主窗口使用 WebView2。Rust 管理托盘、配置和独立的原生岛窗。关闭主窗口会释放 WebView，托盘可重开工作台。 |
-| [Tauri 配置](../../src-tauri/tauri.conf.json)、[主窗口权限](../../src-tauri/capabilities/main.json) | 配置开发服务器地址、生产资源、窗口尺寸和安装包。Windows 本地 `main` 窗口可管理灵动岛。自定义顶栏使用同一窗口的系统装饰切换、最大化状态查询、拖动、最小化、最大化或还原、关闭权限。 |
+| [Tauri 配置](../../src-tauri/tauri.conf.json)、[主窗口权限](../../src-tauri/capabilities/main.json) | 配置开发服务器地址、生产资源、原生窗口装饰、窗口尺寸和安装包。Windows 本地 `main` 窗口可管理灵动岛、同步标题栏配色和导航按钮状态。 |
+| [标题栏工具栏](../../src-tauri/src/caption_navigation.rs)、[前端导航操作](../../src/app/WindowNavigation.tsx) | React 订阅当前窗口的 `window-navigation` 事件，再用 `set_main_window_navigation` 同步操作可用性和侧栏状态。原生控件处理鼠标，页面切换沿用 React Router。 |
 
 ## 运行与构建
 

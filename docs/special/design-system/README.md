@@ -12,7 +12,7 @@
 | --- | --- | --- | --- |
 | `--background` | `#F5F6F7` | `#181818` | 页头、页面内容区底色 |
 | `--foreground` | `#20262D` | `#E6E6E6` | 标题、正文 |
-| `--sidebar`、`--sidebar-background` | `#F0F2F4` | `#1D1D1D` | 顶部窗口栏、一级导航与底部状态栏共用的底色 |
+| `--sidebar`、`--sidebar-background` | `#F0F2F4` | `#1D1D1D` | 一级导航与底部状态栏底色，以及 Windows 原生标题栏的目标底色 |
 | `--sidebar-foreground` | `#20262D` | `#E0E0E0` | 侧栏文字 |
 | `--card` | `#FFFFFF` | `#222222` | 普通面板、表单控件 |
 | `--popover` | `#FFFFFF` | `#292929` | 菜单、弹窗、浮层 |
@@ -29,6 +29,12 @@
 | `--ring` | `#6486A3` | `#B8B8B8` | 键盘焦点 |
 | `--overlay` | `#171A1F52` | `#000000A6` | Dialog 和 Sheet 遮罩，末两位为透明度 |
 | `--scrollbar-thumb` | `#7D8791` | `#777777` | 原生滚动条滑块 |
+
+### Windows 原生标题栏
+
+应用名称右侧的三个线性图标由 Windows 工具栏控件绘制。控件位于标题栏内，随窗口移动和显示缩放调整位置，给顶边缩放区和右侧系统按钮留出空间。悬停、按下和禁用状态使用标题栏的背景与文字配色。[标题栏导航](../../../src-tauri/src/caption_navigation.rs)
+
+主窗口加载和工作台主题切换时，`set_main_window_chrome` 将当前明暗模式同步给 Windows，并使用 `--sidebar`、`--sidebar-foreground` 和 `--sidebar-border` 分别设置标题栏背景、文字和窗口边框。Windows 11 从内部版本 22000 起支持这三项颜色属性。每项 DWM 属性单独应用，旧版系统对不支持的属性使用系统外观。启用 Windows 高对比度时，标题栏恢复系统配色。[Microsoft DWM 窗口属性](https://learn.microsoft.com/en-us/windows/win32/api/dwmapi/ne-dwmapi-dwmwindowattribute)
 
 ### 状态色
 

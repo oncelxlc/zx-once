@@ -4,10 +4,12 @@ use serde_json::json;
 use tauri::ipc::Origin;
 
 #[test]
-fn compiled_acl_grants_island_management_only_to_main() {
+fn compiled_acl_grants_workbench_commands_only_to_main() {
     let mut context: tauri::Context<tauri::Wry> = tauri::generate_context!();
     let acl = context.runtime_authority_mut();
     for command in [
+        "set_main_window_chrome",
+        "set_main_window_navigation",
         "main_window_restore",
         "island_get_config",
         "island_get_notifications",

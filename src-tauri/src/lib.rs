@@ -1,5 +1,9 @@
 #[cfg(windows)]
+mod caption_navigation;
+#[cfg(windows)]
 mod island;
+#[cfg(windows)]
+mod window_chrome;
 
 #[cfg(windows)]
 #[doc(hidden)]

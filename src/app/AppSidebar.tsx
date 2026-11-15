@@ -1,10 +1,12 @@
-import { Settings } from "lucide-react";
+import { Settings, X } from "lucide-react";
 import { Fragment } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useLocation } from "react-router";
+import { Button } from "../components/ui/button";
+import { SheetClose } from "../components/ui/sheet";
 import { ContextMenu, ContextMenuContent, ContextMenuGroup, ContextMenuItem, ContextMenuTrigger } from "../components/ui/context-menu";
 import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent, SidebarGroupLabel,
-  SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarSeparator, SidebarTrigger, useSidebar } from "../components/ui/sidebar";
+  SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarSeparator, useSidebar } from "../components/ui/sidebar";
 import type { RootState } from "../store";
 import { activeDestination, destinations, type NavId } from "./navigation";
 import { moveItem, resetNavigation, toggleHidden, togglePin } from "./preferencesSlice";
@@ -38,7 +40,7 @@ function SidebarItem({ id, current, onNavigate }: { id: NavId; current: boolean;
 
 export function AppSidebar() {
   const { groups, pins, hidden } = useSelector((state: RootState) => state.preferences);
-  const { isMobile, open, openMobile, setOpenMobile } = useSidebar();
+  const { isMobile, open, setOpenMobile } = useSidebar();
   const compact = !isMobile && !open;
   const { pathname, search } = useLocation();
   const visibleGroups = groups.filter(group => !group.hidden);
@@ -61,9 +63,8 @@ export function AppSidebar() {
     </Fragment>;
   }
   return <Sidebar collapsible="icon">
-    {isMobile && <SidebarHeader className="shrink-0 items-start">
-      <SidebarTrigger size="icon" aria-label="关闭导航" title="关闭导航" aria-expanded={openMobile} />
-    </SidebarHeader>}
+    {isMobile && <SheetClose render={<Button variant="ghost" size="icon" className="m-1 self-end" />}
+      aria-label="关闭导航"><X aria-hidden="true" /></SheetClose>}
     <SidebarContent role="navigation" aria-label="主导航">
       {renderGroup("favorites", "收藏", favorites)}
       {visibleGroups.map(group => renderGroup(group.id, group.title, group.items.filter(id => visible.includes(id) && !favorites.includes(id))))}

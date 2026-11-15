@@ -1,5 +1,6 @@
 import { configureStore } from "@reduxjs/toolkit";
 import { activityReducer } from "./app/activitySlice";
+import { navigationHistory } from "./app/navigationHistory";
 import { preferencesReducer } from "./app/preferencesSlice";
 import { environmentReducer } from "./features/environment/environmentSlice";
 import { gitReducer } from "./features/git/gitSlice";
@@ -11,7 +12,7 @@ import { remoteReducer } from "./features/remote/remoteSlice";
 export function createAppStore() {
   return configureStore({
     reducer: {
-      island: island.reducer, preferences: preferencesReducer, activity: activityReducer,
+      island: island.reducer, preferences: preferencesReducer, activity: activityReducer, navigationHistory: navigationHistory.reducer,
       projects: projectsReducer, environment: environmentReducer, git: gitReducer, github: githubReducer, remote: remoteReducer,
     },
   });

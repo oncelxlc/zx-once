@@ -41,7 +41,7 @@ export function GitPage() {
     dispatch(addActivity({ text, to: "/git?repo=" + selected.id }));
   }
 
-  return <WorkbenchPage title="Git 工作区" view={tab}
+  return <WorkbenchPage title="Git 工作区" view={tab} resource={["repo", repo.id]}
     navigation={<QueryNavigation label="Git 仓库视图" items={tabs} current={tab} clear={["action", "source"]} />}
     actions={<Button variant="outline" onClick={() => { const next = new URLSearchParams(params); next.set("action", "clone"); setParams(next); }}>
       <GitFork data-icon="inline-start" aria-hidden="true" /> 克隆仓库</Button>}>

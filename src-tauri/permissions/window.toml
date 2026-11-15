@@ -1,0 +1,4 @@
+[[permission]]
+identifier = "main-window-chrome"
+description = "Apply the workbench colors and navigation button state to the main window caption."
+commands.allow = ["set_main_window_chrome", "set_main_window_navigation"]
