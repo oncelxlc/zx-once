@@ -104,6 +104,7 @@ impl Toolbar {
             iBitmap: I_IMAGENONE,
             idCommand: id as i32,
             iString: name as isize,
+            fsStyle: if id == SIDEBAR { BTNS_CHECK as u8 } else { 0 },
             fsState: if id == SIDEBAR {
                 TBSTATE_ENABLED as u8
             } else {
@@ -133,16 +134,26 @@ impl Toolbar {
     unsafe fn position(&self, owner: HWND) {
         if let Some(bounds) = layout::bounds(owner, &self.title_width).filter(|_| self.ready.get())
         {
-            let size = bounds.width as isize | ((bounds.height as isize) << 16);
+            let size = bounds.button_width as isize | ((bounds.height as isize) << 16);
             if SendMessageW(self.hwnd, TB_GETBUTTONSIZE, 0, 0) != size {
                 SendMessageW(self.hwnd, TB_SETBUTTONSIZE, 0, size);
+            }
+            let mut metrics = TBMETRICS {
+                cbSize: size_of::<TBMETRICS>() as u32,
+                dwMask: TBMF_BUTTONSPACING,
+                ..Default::default()
+            };
+            SendMessageW(self.hwnd, TB_GETMETRICS, 0, &raw mut metrics as isize);
+            if metrics.cxButtonSpacing != bounds.gap {
+                metrics.cxButtonSpacing = bounds.gap;
+                SendMessageW(self.hwnd, TB_SETMETRICS, 0, &raw const metrics as isize);
             }
             SetWindowPos(
                 self.hwnd,
                 null_mut(),
                 bounds.x,
                 bounds.y,
-                bounds.width * 3,
+                bounds.width,
                 bounds.height,
                 SWP_NOACTIVATE | SWP_NOZORDER | SWP_NOSENDCHANGING | SWP_SHOWWINDOW,
             );
@@ -178,6 +189,7 @@ pub(crate) async fn set_main_window_navigation(
         let bar = Toolbar::install(window, owner)?;
         SendMessageW(bar.hwnd, TB_ENABLEBUTTON, BACK, can_go_back as isize);
         SendMessageW(bar.hwnd, TB_ENABLEBUTTON, FORWARD, can_go_forward as isize);
+        SendMessageW(bar.hwnd, TB_CHECKBUTTON, SIDEBAR, sidebar_open as isize);
         let name = if sidebar_open {
             w!("收起导航")
         } else {

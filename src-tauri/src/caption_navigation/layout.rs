@@ -14,11 +14,15 @@ use windows_sys::Win32::{
     },
 };
 
+pub(super) const BUTTON_SIZE: i32 = 32;
+
 pub(super) struct Bounds {
     pub x: i32,
     pub y: i32,
     pub width: i32,
     pub height: i32,
+    pub button_width: i32,
+    pub gap: i32,
 }
 
 unsafe fn title_width(owner: HWND, dpi: u32) -> Option<i32> {
@@ -53,13 +57,16 @@ unsafe fn title_width(owner: HWND, dpi: u32) -> Option<i32> {
     (measured != 0).then_some(size.cx)
 }
 
-fn fit(left: i32, top: i32, right: i32, bottom: i32, width: i32) -> Option<Bounds> {
-    let height = bottom - top;
-    (width > 0 && height > 0 && right - left >= width * 3).then_some(Bounds {
+fn fit(left: i32, top: i32, right: i32, bottom: i32, button: i32, gap: i32) -> Option<Bounds> {
+    let height = button.min(bottom - top);
+    let width = 3 * button + 2 * gap;
+    (height > 0 && right - left >= width).then_some(Bounds {
         x: left,
-        y: top,
+        y: top + (bottom - top - height) / 2,
         width,
         height,
+        button_width: button,
+        gap,
     })
 }
 
@@ -104,7 +111,7 @@ pub(super) unsafe fn bounds(
     } else {
         window.right - metric(SM_CXSIZE) * 3
     };
-    fit(left, top, right - px(8), client.y, px(34))
+    fit(left, top, right - px(8), client.y, px(BUTTON_SIZE), px(3))
 }
 
 #[cfg(test)]
@@ -113,9 +120,16 @@ mod tests {
 
     #[test]
     fn keeps_all_controls_between_the_caption_title_and_system_buttons() {
-        let bar = fit(-1400, -12, -1200, 23, 51).unwrap();
-        assert_eq!((bar.x, bar.y, bar.width, bar.height), (-1400, -12, 51, 35));
-        assert!(fit(150, 8, 250, 31, 34).is_none());
-        assert!(fit(80, 8, 750, 0, 34).is_none());
+        let bar = fit(-1400, -12, -1200, 23, 48, 5).unwrap();
+        assert_eq!((bar.x, bar.y, bar.width, bar.height), (-1400, -12, 154, 35));
+        assert!(fit(150, 8, 251, 31, 32, 3).is_none());
+        assert!(fit(80, 8, 750, 0, 32, 3).is_none());
+    }
+
+    #[test]
+    fn centers_square_buttons_in_a_tall_caption_and_counts_both_gaps() {
+        let bar = fit(150, 8, 252, 48, 32, 3).unwrap();
+        assert_eq!((bar.y, bar.height), (12, 32));
+        assert_eq!((bar.button_width, bar.gap, bar.width), (32, 3, 102));
     }
 }

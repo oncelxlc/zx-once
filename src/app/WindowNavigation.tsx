@@ -63,11 +63,13 @@ export function WindowNavigation() {
     { label: "前进", icon: ArrowRight, click: navigation.forward, disabled: !navigation.canGoForward },
     { label: sidebarOpen ? "收起导航" : "展开导航", icon: PanelLeft, click: toggleSidebar, expanded: sidebarOpen },
   ];
-  return <div role="group" aria-label="导航操作" className="flex shrink-0 items-center">
+  return <div role="group" aria-label="导航操作" className="flex shrink-0 items-center gap-[3px]">
     {actions.map(({ label, icon: Icon, click, disabled, expanded }) => <Tooltip key={Icon.displayName}>
-      <TooltipTrigger render={<Button variant="ghost" size="icon-sm" className="w-8 aria-disabled:opacity-50"
+      <TooltipTrigger render={<Button variant="ghost" size="icon"
+        className="rounded-md border-0 text-sidebar-foreground ring-inset transition-colors hover:bg-sidebar-foreground/8 aria-expanded:bg-sidebar-foreground/12
+          active:not-aria-disabled:bg-sidebar-foreground/18 active:not-aria-[haspopup]:translate-y-0 aria-disabled:hover:bg-transparent aria-disabled:[&_svg]:opacity-40"
         disabled={disabled} focusableWhenDisabled aria-label={label} aria-expanded={expanded} onClick={click} />}>
-        <Icon aria-hidden="true" />
+        <Icon aria-hidden="true" className="size-4.5" strokeWidth={1.75} />
       </TooltipTrigger>
       <TooltipContent>{label}</TooltipContent>
     </Tooltip>)}

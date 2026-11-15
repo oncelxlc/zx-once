@@ -23,6 +23,17 @@ const action = (name: "返回" | "前进") => screen.getByRole("button", { name 
 const at = (hash: string) => waitFor(() => expect(window.location.hash).toBe(hash));
 const visitCount = (store: ReturnType<typeof open>) => store.getState().navigationHistory.visits.length;
 
+it("keeps the disabled back button focusable for its tooltip", async () => {
+  const store = open("#/");
+  const back = action("返回");
+  expect(back.textContent).toBe("");
+  act(() => back.focus());
+  expect(await screen.findByText("返回")).toBeTruthy();
+  fireEvent.click(back);
+  expect(window.location.hash).toBe("#/");
+  expect(visitCount(store)).toBe(1);
+});
+
 it("shares route traversal with the browser, skips duplicate views and drops a forward branch on new navigation", async () => {
   const store = open("#/island?group=startup");
   expect(action("返回").getAttribute("aria-disabled")).toBe("true");

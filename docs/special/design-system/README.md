@@ -32,7 +32,9 @@
 
 ### Windows 原生标题栏
 
-应用名称右侧的三个线性图标由 Windows 工具栏控件绘制。控件位于标题栏内，随窗口移动和显示缩放调整位置，给顶边缩放区和右侧系统按钮留出空间。悬停、按下和禁用状态使用标题栏的背景与文字配色。[标题栏导航](../../../src-tauri/src/caption_navigation.rs)
+应用名称右侧的返回、前进和主导航开关使用 18px 的 Lucide 线性图标。按钮以逻辑像素计，目标尺寸为 32 × 32，间距 3，圆角半径 8。Windows 原生工具栏随 DPI 缩放，可用高度较小时缩短按钮高度，避开顶部缩放区和右侧系统按钮。浏览器状态栏使用同样尺寸的 shadcn/ui Button。[原生标题栏布局](../../../src-tauri/src/caption_navigation/layout.rs) · [浏览器导航按钮](../../../src/app/WindowNavigation.tsx)
+
+按钮默认只显示图标。悬停、侧栏展开和按下时，分别把 8%、12% 和 18% 的前景色混入底色，按下时反馈最明显。返回和前进不可用时，图标降至 40% 强度。按钮名称通过浮动提示显示。[原生按钮绘制](../../../src-tauri/src/caption_navigation/paint.rs)
 
 主窗口加载和工作台主题切换时，`set_main_window_chrome` 将当前明暗模式同步给 Windows，并使用 `--sidebar`、`--sidebar-foreground` 和 `--sidebar-border` 分别设置标题栏背景、文字和窗口边框。Windows 11 从内部版本 22000 起支持这三项颜色属性。每项 DWM 属性单独应用，旧版系统对不支持的属性使用系统外观。启用 Windows 高对比度时，标题栏恢复系统配色。[Microsoft DWM 窗口属性](https://learn.microsoft.com/en-us/windows/win32/api/dwmapi/ne-dwmapi-dwmwindowattribute)
 
