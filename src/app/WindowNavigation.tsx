@@ -67,7 +67,8 @@ export function WindowNavigation() {
     {actions.map(({ label, icon: Icon, click, disabled, expanded }) => <Tooltip key={Icon.displayName}>
       <TooltipTrigger render={<Button variant="ghost" size="icon"
         className="rounded-md border-0 text-sidebar-foreground ring-inset transition-colors hover:bg-sidebar-foreground/8 aria-expanded:bg-sidebar-foreground/12
-          active:not-aria-disabled:bg-sidebar-foreground/18 active:not-aria-[haspopup]:translate-y-0 aria-disabled:hover:bg-transparent aria-disabled:[&_svg]:opacity-40"
+          active:not-aria-disabled:bg-sidebar-foreground/18 active:not-aria-[haspopup]:translate-y-0 aria-disabled:hover:bg-transparent aria-disabled:[&_svg]:opacity-40
+          forced-colors:focus-visible:[outline:2px_solid_Highlight] forced-colors:focus-visible:-outline-offset-2"
         disabled={disabled} focusableWhenDisabled aria-label={label} aria-expanded={expanded} onClick={click} />}>
         <Icon aria-hidden="true" className="size-4.5" strokeWidth={1.75} />
       </TooltipTrigger>

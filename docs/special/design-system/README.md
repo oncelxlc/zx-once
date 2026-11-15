@@ -32,7 +32,7 @@
 
 ### Windows 原生标题栏
 
-应用名称右侧的返回、前进和主导航开关使用 18px 的 Lucide 线性图标。按钮以逻辑像素计，目标尺寸为 32 × 32，间距 3，圆角半径 8。Windows 原生工具栏随 DPI 缩放，可用高度较小时缩短按钮高度，避开顶部缩放区和右侧系统按钮。浏览器状态栏使用同样尺寸的 shadcn/ui Button。[原生标题栏布局](../../../src-tauri/src/caption_navigation/layout.rs) · [浏览器导航按钮](../../../src/app/WindowNavigation.tsx)
+应用名称右侧的返回、前进和主导航开关使用 18px 的 Lucide 线性图标。按钮以逻辑像素计，目标尺寸为 32 × 32，间距 3，圆角半径 8。Windows 原生工具栏随 DPI 缩放，可用高度较小时缩短按钮高度，避开顶部缩放区和右侧系统按钮。浏览器状态栏使用同样尺寸的 shadcn/ui Button。在浏览器强制颜色模式下，键盘焦点使用 2px 的系统 `Highlight` 轮廓。[原生标题栏布局](../../../src-tauri/src/caption_navigation/layout.rs) · [浏览器导航按钮](../../../src/app/WindowNavigation.tsx)
 
 按钮默认只显示图标。悬停、侧栏展开和按下时，分别把 8%、12% 和 18% 的前景色混入底色，按下时反馈最明显。返回和前进不可用时，图标降至 40% 强度。按钮名称通过浮动提示显示。[原生按钮绘制](../../../src-tauri/src/caption_navigation/paint.rs)
 
