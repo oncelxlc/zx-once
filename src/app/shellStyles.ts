@@ -5,5 +5,5 @@ export const shell = stylex.create({
     paddingInline: { default: 16, "@media (max-width: 479px)": 4 }, gap: { default: 12, "@media (max-width: 479px)": 4 },
     color: "var(--sidebar-foreground)", fontSize: "0.75rem" },
   statusItem: { display: "inline-flex", alignItems: "center", gap: 6 },
-  version: { marginLeft: "auto", fontFamily: "var(--font-mono)", fontVariantNumeric: "tabular-nums" },
+  version: { marginLeft: "auto", fontFamily: "var(--mono)", fontVariantNumeric: "tabular-nums" },
 });

@@ -2,6 +2,11 @@
 import { readFileSync } from "node:fs";
 import { expect, it, onTestFinished } from "vitest";
 
+// Inline the local theme as Vite does. jsdom does not fetch stylesheet imports.
+const stylesheet = readFileSync("src/styles.css", "utf8").replace(
+  '@import "./workbench.pcss";', () => readFileSync("src/workbench.pcss", "utf8"),
+);
+
 it("composites the outer frame once while the page header and content keep their theme fill", () => {
   const root = document.documentElement;
   const frame = document.createElement("div");
@@ -17,7 +22,7 @@ it("composites the outer frame once while the page header and content keep their
   const style = document.createElement("style");
   // The utility classes normally supply solid fills after Tailwind compilation.
   style.textContent = 'html, body, [data-slot^="sidebar-"] { background-color: black; } main { background-color: var(--background); }\n'
-    + readFileSync("src/styles.css", "utf8");
+    + stylesheet;
   document.head.append(style);
   document.body.append(frame);
   root.dataset.translucent = "true";
@@ -29,11 +34,14 @@ it("composites the outer frame once while the page header and content keep their
   });
 
   // jsdom supports screen media but does not emulate OS color and transparency preferences.
-  const media = [...(style.sheet?.cssRules ?? [])].find((rule): rule is CSSMediaRule =>
-    rule instanceof CSSMediaRule && rule.conditionText.includes("prefers-reduced-transparency"));
-  if (!media) throw new Error("Missing translucency media rule");
-  expect(media.conditionText).toContain("forced-colors: none");
-  media.media.mediaText = "screen";
+  const normalColors = [...(style.sheet?.cssRules ?? [])].find((rule): rule is CSSMediaRule =>
+    rule instanceof CSSMediaRule && rule.conditionText === "(forced-colors: none)");
+  const allowTransparency = [...(normalColors?.cssRules ?? [])].find((rule): rule is CSSMediaRule =>
+    rule instanceof CSSMediaRule && rule.conditionText === "not all and (prefers-reduced-transparency: reduce)");
+  if (!normalColors || !allowTransparency) throw new Error("Missing translucency media rules");
+  expect(getComputedStyle(root).getPropertyValue("--frame-transparency").trim()).toBe("0%");
+  normalColors.media.mediaText = "screen";
+  allowTransparency.media.mediaText = "screen";
   const fill = (element: Element) => getComputedStyle(element).backgroundColor;
   const transparent = "rgba(0, 0, 0, 0)";
   expect(fill(frame)).toContain("--frame-transparency");
@@ -48,13 +56,16 @@ it("composites the outer frame once while the page header and content keep their
       for (const surface of [root, document.body, frame]) expect(fill(surface)).toBe(transparent);
     }
   }
-  media.media.mediaText = "print";
-  for (const element of [root, document.body, frame, sidebar]) expect(fill(element)).toBe("rgb(0, 0, 0)");
+  for (const media of [allowTransparency, normalColors]) {
+    media.media.mediaText = "print";
+    for (const element of [root, document.body, frame, sidebar]) expect(fill(element)).toBe("rgb(0, 0, 0)");
+    media.media.mediaText = "screen";
+  }
 });
 
 it("resolves the dark workbench palette and sidebar aliases to neutral graphite", () => {
   const style = document.createElement("style");
-  style.textContent = readFileSync("src/styles.css", "utf8");
+  style.textContent = stylesheet;
   document.head.append(style);
   document.documentElement.classList.add("dark");
   onTestFinished(() => {

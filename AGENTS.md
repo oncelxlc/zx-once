@@ -10,6 +10,12 @@
 - 修改 Rust 后，在 `src-tauri/` 中运行 `cargo fmt --check`、`cargo clippy --all-targets --all-features -- -D warnings` 和 `cargo test`。
 - 确需引入主机操作时，仅授予该操作所需的 Tauri 权限。
 
+## 样式兼容性
+
+- 普通 `.css` 文件只写标准 CSS。Tailwind 和 StyleX 的专用指令与 shadcn/ui 管理的主题变量集中在 [PostCSS 主题文件](src/workbench.pcss)，由[全局样式](src/styles.css)导入。
+- CSS 或 StyleX 引用的项目自定义属性须在对应作用域声明。由脚本动态更新的属性也要有可用初值，例如在 `:root` 定义 `--frame-transparency`，再由外观设置覆盖。
+- 媒体查询使用浏览器和编辑器都能解析的标准语法。需要同时判断多项偏好并否定其中一项时，可嵌套独立的 `@media` 查询，保留浏览器不支持某项偏好时的回退行为。修改时排查其他样式入口和组件内用法，并保持 CSS 诊断开启。
+
 ## 操作验证
 
 - 日常修改默认执行与变更相关的自动化检查。需要启动桌面窗口、控制界面、人工点击或额外授权的操作验证，等用户明确要求或确认后再集中执行，避免每次修改都发起验证或授权请求。

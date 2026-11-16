@@ -16,6 +16,27 @@ function openPage(route: string) {
   render(<Provider store={createAppStore()}><HashRouter><App /></HashRouter></Provider>);
 }
 
+it.each([false, true])("keeps the commit draft when switching views with reduced motion %s", async reduced => {
+  vi.stubGlobal("matchMedia", (query: string) => Object.assign(new EventTarget(), {
+    matches: query === "(prefers-reduced-motion: reduce)" && reduced,
+  }));
+  openPage("#/git");
+  const main = await screen.findByRole("main", { name: "Git 工作区" });
+  // jsdom has no Web Animations API. Observe only the content surface, leaving other controls alone.
+  const animate = vi.fn(() => ({ cancel: vi.fn() }));
+  Object.defineProperty(main, "animate", { value: animate });
+  const nav = within(screen.getByRole("navigation", { name: "Git 仓库视图" }));
+  fireEvent.change(within(main).getByLabelText("提交说明"), { target: { value: "保留本地草稿" } });
+  fireEvent.click(nav.getByRole("link", { name: "提交历史" }));
+  await nav.findByRole("link", { name: "提交历史", current: "page" });
+  expect(animate).toHaveBeenCalledTimes(reduced ? 0 : 1);
+  fireEvent.click(nav.getByRole("link", { name: "提交历史" }));
+  expect(animate).toHaveBeenCalledTimes(reduced ? 0 : 1);
+  fireEvent.click(nav.getByRole("link", { name: "工作区变更" }));
+  expect(await within(main).findByDisplayValue("保留本地草稿")).toBeTruthy();
+  expect(animate).toHaveBeenCalledTimes(reduced ? 0 : 2);
+});
+
 it("selects the environment detail's category and clears the detail when changing views", async () => {
   vi.stubGlobal("innerWidth", 1600);
   openPage("#/environment?id=pnpm");

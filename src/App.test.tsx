@@ -133,7 +133,7 @@ it("opens island settings directly from the main navigation", async () => {
   expect(screen.getByRole("link", { name: "设置" }).hasAttribute("aria-current")).toBe(false);
 });
 
-it("keeps the title, action and section navigation in the header as pages change", async () => {
+it("keeps section navigation outside the header and scrollable content as pages change", async () => {
   renderAt("#/projects");
   const primary = within(screen.getByRole("navigation", { name: "主导航" }));
   const footer = screen.getByRole("contentinfo", { name: "工作台状态" });
@@ -143,15 +143,21 @@ it("keeps the title, action and section navigation in the header as pages change
 
   fireEvent.click(primary.getByRole("link", { name: "Git 工作区" }));
   const content = await screen.findByRole("main", { name: "Git 工作区" });
+  expect(primary.getByRole("link", { name: "Git 工作区", current: "page" })).toBeTruthy();
   const header = within(screen.getByRole("banner"));
   const title = header.getByRole("heading", { name: "Git 工作区", level: 1 });
-  const sections = header.getByRole("navigation", { name: "Git 仓库视图" });
+  const sections = screen.getByRole("navigation", { name: "Git 仓库视图" });
+  expect(header.queryByRole("navigation")).toBeNull();
   expect(header.getByRole("button", { name: "克隆仓库" })).toBeTruthy();
   expect(content.contains(sections)).toBe(false);
   expect(content.contains(title)).toBe(false);
   content.scrollTop = 400;
-  fireEvent.click(within(sections).getByRole("link", { name: "提交历史" }));
-  await waitFor(() => expect(within(sections).getByRole("link", { name: "提交历史", current: "page" })).toBeTruthy());
+  const history = within(sections).getByRole("link", { name: "提交历史" });
+  act(() => history.focus());
+  fireEvent.click(history);
+  await waitFor(() => expect(window.location.hash).toBe("#/git?tab=history"));
+  expect(within(sections).getByRole("link", { current: "page" })).toBe(history);
+  expect(document.activeElement).toBe(history);
   expect(screen.getByRole("main")).toBe(content);
   expect(content.scrollTop).toBe(0);
   expect(screen.getByRole("heading", { level: 1 })).toBe(title);

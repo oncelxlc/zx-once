@@ -4,9 +4,9 @@
 
 ## 颜色变量
 
-浅色值定义在 `:root`，深色值由 `:root.dark` 覆盖。StyleX 可以直接使用 `var(--card)` 等颜色。shadcn/ui 通过 Tailwind 的 `@theme inline` 将同一变量映射为 `bg-card`、`text-foreground`、`border-input` 和 `ring-ring` 等工具类。[主题变量定义](../../../src/styles.css)
+浅色主题变量定义在 `:root`，工作台将 `dark` 类加到根元素来启用深色变量。StyleX 可以直接使用 `var(--card)` 等颜色。PostCSS 主题文件通过 Tailwind 的 `@theme inline` 将同一变量映射为 `bg-card`、`text-foreground`、`border-input` 和 `ring-ring` 等工具类，供 shadcn/ui 使用。[主题变量及映射](../../../src/workbench.pcss) · [全局样式入口](../../../src/styles.css)
 
-固定页头内的标题为 1rem，二级导航为 0.8rem，正文和面板标题为 0.875rem。面板标题使用较高字重，资源路径和辅助文字使用较小字号。二级导航当前项用主题选中底色、细边框和字重标识，键盘焦点单独描边。[共享页面布局](../../../src/app/WorkbenchPage.tsx)
+固定页头的标题为 1rem，垂直二级菜单的文字为 0.8rem，正文和面板标题为 0.875rem。面板标题使用较高字重，资源路径和辅助文字使用较小字号。二级导航当前项用主题选中底色、细边框和字重标识，键盘焦点单独描边。[共享页面布局](../../../src/app/WorkbenchPage.tsx)
 
 「设置 → 外观 → 半透明效果」中的百分比控制整个外框。桌面侧栏、底栏和圆角留白透出同一层背景，页头与正文共用实色圆角容器。浏览器用主题色作为外框的底层，窄窗抽屉叠在正文上，使用较实的底色和模糊效果。Windows 无法应用材质，或系统要求强制颜色、减少透明时，外框使用实色。[外观设置](../../../src/app/SettingsPage.tsx) · [表面样式](../../../src/styles.css)
 

@@ -11,6 +11,10 @@ function watchWidth(update: () => void) {
   return () => window.removeEventListener("resize", update);
 }
 
+/**
+ * The routed page supplies its resolved view so opening a detail or editing a filter
+ * keeps the current section's scroll position and does not replay its entrance.
+ */
 export function WorkbenchPage({ title, actions, navigation, view, resource, children }: {
   title: string; actions?: ReactNode; navigation?: ReactNode; view?: string; resource?: readonly [string, string]; children: ReactNode;
 }) {
@@ -19,17 +23,26 @@ export function WorkbenchPage({ title, actions, navigation, view, resource, chil
   const [detailHost, setDetailHost] = useState<HTMLDivElement | null>(null);
   const content = useRef<HTMLElement>(null);
   useLayoutEffect(() => {
-    if (content.current) content.current.scrollTop = 0;
+    const main = content.current;
+    if (!main) return;
+    main.scrollTop = 0;
+    if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
+    // Animate the existing element so focus and mounted form state survive a section change.
+    const entrance = main.animate?.([
+      { opacity: 0.65, transform: "translateY(6px)" },
+      { opacity: 1, transform: "translateY(0)" },
+    ], { duration: 180, easing: "ease-out" });
+    return () => entrance?.cancel();
   }, [view]);
 
   return <>
     <header data-slot="workbench-header"
-      className="flex min-h-11 min-w-0 shrink-0 flex-wrap items-center gap-x-3 gap-y-1 border-b border-border/70 px-3 py-1.5 min-[800px]:flex-nowrap min-[800px]:px-5">
+      className="flex min-h-11 min-w-0 shrink-0 flex-wrap items-center gap-x-3 gap-y-1 border-b border-border/70 px-3 py-1.5 min-[800px]:px-5">
       <h1 id="workbench-title" className="shrink-0 text-base leading-snug font-semibold">{title}</h1>
-      {navigation}
       {actions && <div className="ml-auto">{actions}</div>}
     </header>
-    <div className="flex min-h-0 min-w-0 flex-1 overflow-hidden">
+    <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden sm:flex-row">
+      {navigation}
       <DetailPanelHost.Provider value={wide ? detailHost : null}>
         <SidebarInset ref={content} id="workbench-content" aria-labelledby="workbench-title" tabIndex={-1}
           className="min-h-0 min-w-0 gap-3 overflow-auto overscroll-contain p-3 [scrollbar-gutter:stable] min-[800px]:px-5 min-[800px]:py-4">
@@ -52,14 +65,14 @@ export function SecondaryNav({ label, links }: { label: string; links: SectionLi
   const selected = useRef<HTMLAnchorElement>(null);
   const active = links.find(link => link.active)?.label;
   useLayoutEffect(() => {
-    // Deep links and Back/Forward can select a link beyond the visible part of the strip.
+    // Deep links and Back/Forward can select an item outside the menu's scrollable viewport.
     selected.current?.scrollIntoView?.({ block: "nearest", inline: "nearest" });
   }, [active]);
   return <nav aria-label={label}
-    className="order-last flex min-w-0 basis-full items-center gap-1 overflow-x-auto overscroll-x-contain p-1 [scrollbar-width:thin] min-[800px]:order-none min-[800px]:basis-auto min-[800px]:border-s min-[800px]:ps-3">
+    className="flex max-h-[30dvh] min-h-0 shrink-0 flex-col gap-1 overflow-y-auto overscroll-y-contain border-b border-border/70 p-2 [scrollbar-width:thin] sm:max-h-none sm:w-36 sm:border-e sm:border-b-0">
     {links.map(link => <Link key={link.label} ref={link.active ? selected : undefined} to={link.to}
       className={cn(buttonVariants({ variant: "ghost", size: "sm" }),
-        "text-foreground/75 aria-[current=page]:border-primary/35 aria-[current=page]:font-semibold forced-colors:focus-visible:[outline:2px_solid_Highlight]")}
+        "h-auto min-h-11 justify-start py-1 text-start whitespace-normal text-foreground/75 transition-colors sm:min-h-8 aria-[current=page]:border-primary/35 aria-[current=page]:font-semibold motion-reduce:transition-none forced-colors:focus-visible:[outline:2px_solid_Highlight]")}
       aria-current={link.active ? "page" : undefined} onClick={link.onClick}>{link.label}</Link>)}
   </nav>;
 }
