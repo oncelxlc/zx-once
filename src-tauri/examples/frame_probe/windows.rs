@@ -394,6 +394,7 @@ fn lifecycle(csv: &str, frames: &[Sample], frequency: i64, end: i64) -> Result<V
             } else {
                 missing += 1;
             }
+            // Only pixel changes produce samples, so the last frame before this action can still be on screen.
             if hi.checked_sub(1).is_some_and(|n| match action {
                 "hide" => frames[n].covered == 0,
                 "peek" => frames[n].covered > 0 && frames[n].dark == 0,

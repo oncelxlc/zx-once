@@ -30,6 +30,7 @@ function mmss(ms: number) {
 }
 
 function coverColors(title: string) {
+  // Match the Rust renderer's UTF-8 bytes and wrapping u64 hash so fallback covers use the same gradient.
   let hash = 1469598103934665603n;
   for (const byte of new TextEncoder().encode(title)) hash = BigInt.asUintN(64, (hash ^ BigInt(byte)) * 1099511628211n);
   const gradients = islandPalette.coverGradients;

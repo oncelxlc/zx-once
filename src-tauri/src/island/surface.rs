@@ -121,6 +121,8 @@ fn error(operation: &str) -> String {
 }
 
 impl Surface {
+    /// Window messages invoke `emit` on the thread that owns the HWND.
+    /// Queue follow-up work on the manager so the window thread can return to its message pump.
     pub fn start(emit: impl Fn(SurfaceEvent) + Send + Sync + 'static) -> Result<Self> {
         let queue = Arc::new(Mutex::new(Queue::default()));
         let work = queue.clone();

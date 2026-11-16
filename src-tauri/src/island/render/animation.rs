@@ -13,6 +13,8 @@ pub(super) fn now() -> i64 {
     ticks
 }
 
+/// Hit testing samples the same cubic curve and QPC start time sent to DirectComposition.
+/// A reversed transition samples that curve to start from the visible bounds and radius.
 #[derive(Clone, Copy)]
 pub(super) struct Timing {
     start: i64,

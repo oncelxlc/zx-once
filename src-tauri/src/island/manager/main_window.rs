@@ -54,6 +54,8 @@ impl MainSnapshot {
     }
 }
 
+/// A new open or close request invalidates earlier WebView snapshot callbacks via `capture_id`.
+/// Once destruction has started, `main_destroyed` handles any queued reopen request.
 #[derive(Default)]
 pub(super) struct MainWindow {
     snapshot: MainSnapshot,

@@ -54,6 +54,8 @@ pub(super) fn notify(event: NativeEvent) {
     }
 }
 
+/// Install and uninstall on the surface thread, which owns the hook handles and pumps their events.
+/// If a hook could not be removed, the next install on that thread retries its release.
 pub(super) fn install(hwnd: HWND, callback: impl Fn(NativeEvent) + 'static) -> Result<(), String> {
     if WATCH.with_borrow(|w| w.is_some()) {
         return Err("窗口监听已注册".into());

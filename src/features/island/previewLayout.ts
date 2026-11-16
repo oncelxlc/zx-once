@@ -3,6 +3,10 @@ import type { IslandConfig } from "./types";
 export type PreviewDock = "top" | "left" | "right";
 export type PreviewState = "compact" | "expanded" | "edgePeek" | "hidden";
 
+/**
+ * Keep body and shoulder dimensions in the native layout's unscaled DIPs.
+ * The SVG positions content inside the body. The enclosing frame applies the size multiplier to the full outline.
+ */
 export function previewLayout(config: IslandConfig, state: PreviewState, battery: boolean, music: boolean) {
   const { appearance, placement } = config;
   const dock: PreviewDock = placement.anchor === "centerLeft" ? "left" : placement.anchor === "centerRight" ? "right" : "top";

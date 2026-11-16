@@ -54,6 +54,8 @@ pub struct Effects {
     pub observe_pointer: bool,
 }
 
+/// An unknown pointer position cannot arm a wake or hide timer.
+/// Fullscreen suspension keeps a restore target in `resume`. Explicit show or hide clears it.
 #[derive(Debug, Clone)]
 pub struct Machine {
     pub state: IslandState,

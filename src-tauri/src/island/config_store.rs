@@ -5,6 +5,8 @@ use std::fs::{self, File, OpenOptions};
 use std::io::{ErrorKind, Write};
 use std::path::{Path, PathBuf};
 
+/// Loading can rewrite a migrated configuration and back up the original bytes.
+/// Saves check the revision under the file lock so two writers cannot both commit changes from the same revision.
 pub struct ConfigStore {
     directory: PathBuf,
     displays: Box<dyn Fn() -> Result<Vec<Display>, String> + Send>,

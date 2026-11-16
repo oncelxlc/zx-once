@@ -34,6 +34,7 @@ function isPreferences(value: unknown): value is Preferences {
 function load(): Preferences {
   const saved = readPreference(storageKey);
   if (!isPreferences(saved)) {
+    // The first-paint script in index.html already applied a valid theme independently of navigation data.
     return isRecord(saved) && isTheme(saved.theme) ? { ...defaults, theme: saved.theme } : defaults;
   }
   // Older preferences also stored a collapsed flag on each group.

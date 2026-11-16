@@ -77,6 +77,7 @@ impl IslandManager {
         }
         let manager_handle = self.worker.clone();
         let generation = self.messages.generation;
+        // One queued job takes the latest complete snapshot, even if several arrive before it runs.
         let latest = Arc::new(Mutex::new(None));
         self.messages.worker = Some(NotificationWorker::start(move |snapshot| {
             if latest.lock().unwrap().replace(snapshot).is_some() {

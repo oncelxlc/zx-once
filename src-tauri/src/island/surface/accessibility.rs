@@ -34,6 +34,8 @@ struct Control {
     page: bool,
 }
 
+/// Index zero is MSAA's CHILDID_SELF. The remaining indices are child IDs for the current panel.
+/// Providers share this list so hiding the window also clears the controls they can act on.
 type Snapshot = Arc<RwLock<Vec<Control>>>;
 type Notify = Arc<dyn Fn(SurfaceEvent) + Send + Sync>;
 

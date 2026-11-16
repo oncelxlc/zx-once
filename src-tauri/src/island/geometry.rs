@@ -249,6 +249,7 @@ impl Display {
         } else {
             a.unread_extent * scale
         };
+        // Reminders extend the trailing edge. drag_placement undoes this shift to recover the saved offset.
         let shift = self.travel(edge, scale) * ratio.clamp(-100.0, 100.0) / 100.0 + unread / 2.0;
         let (x, y) = if edge == Edge::Top {
             (

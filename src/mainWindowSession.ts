@@ -14,6 +14,10 @@ declare global {
 
 export const mainWindowSession: MainWindowSession = { draft: null };
 
+/**
+ * Await restoration before mounting HashRouter so the route and settings draft start from the same snapshot.
+ * The native close handler reads the shared draft from the WebView even if restoration failed at startup.
+ */
 export async function restoreMainWindow() {
   if (!islandApi.isDesktop()) return;
   try {

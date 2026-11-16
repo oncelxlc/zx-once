@@ -235,6 +235,8 @@ fn lifecycle(handle: &ManagerHandle, path: &Path) -> Result<(), String> {
     .map_err(|e| e.to_string())
 }
 
+/// The frame probe records until `visual-input.csv` appears.
+/// Publish it only after the probe acknowledges the last stable-state capture.
 fn visual(handle: &ManagerHandle, path: &Path) -> Result<(), String> {
     use std::fmt::Write;
     wait_for(path, "visual-ready", 40)?;

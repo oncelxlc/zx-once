@@ -79,6 +79,7 @@ fn claim(owners: &mut HashMap<String, Option<Source>>, id: String, source: Optio
     if id.is_empty() {
         return;
     }
+    // An unverified or conflicting claim disqualifies this app ID for the rest of the scan.
     let previous = owners.entry(id).or_insert(source);
     if *previous != source {
         *previous = None;

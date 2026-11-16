@@ -16,4 +16,4 @@
 - [Windows 通知与 MSIX 打包](special/windows-notifications.md) — 微信和 QQ 的窗口发现、提醒归属、授权条件与打包命令。
 - [灵动岛性能诊断](special/island-performance.md) — 原生窗口自检、渲染统计与性能采样条件。
 
-修改项目时，按[仓库文档同步约定](../AGENTS.md#文档同步)更新对应页面。
+修改项目时，按[代码注释约定](../AGENTS.md#代码注释)说明关键实现，并按[文档同步约定](../AGENTS.md#文档同步)更新对应页面。

@@ -12,6 +12,10 @@ interface Visit {
   stops: Stop[];
 }
 
+/**
+ * `cursor` indexes the displayed workbench visit. `pending` holds the target index until the router reports arrival.
+ * `position` is the browser history index, which can be unknown when the user edits the URL.
+ */
 interface History {
   visits: Visit[];
   cursor: number;

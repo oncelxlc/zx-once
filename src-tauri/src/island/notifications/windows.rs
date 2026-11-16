@@ -308,6 +308,8 @@ impl Registry {
         self.reconcile(current);
     }
 
+    /// Preserve the instance ID when a background process gains exactly one window.
+    /// If several appear at once, retire the background ID so it cannot activate an arbitrary window.
     fn reconcile(&mut self, current: Vec<(Target, Option<Arc<AppIcon>>)>) {
         static NEXT_INSTANCE_ID: AtomicU64 = AtomicU64::new(1);
         for (old, entry) in self.entries.iter_mut().filter(|(t, _)| t.hwnd == 0) {
@@ -345,6 +347,7 @@ impl Registry {
     }
 
     pub(super) fn accepts_reminder(&self, source: Source, created: i64) -> bool {
+        // A toast from before every running instance started belongs to an earlier session of the app.
         self.entries
             .iter()
             .any(|(t, _)| t.source == source && i128::from(t.created) <= i128::from(created))

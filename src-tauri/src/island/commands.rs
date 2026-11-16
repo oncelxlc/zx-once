@@ -64,6 +64,7 @@ pub(super) async fn island_request_notification_access(
     window: WebviewWindow,
 ) -> Result<(), String> {
     request(&window, |manager| manager.can_request_notification_access()).await?;
+    // Wait for consent outside the manager queue so it can still process tray and window events.
     let (send, mut receive) = tauri::async_runtime::channel(1);
     window
         .run_on_main_thread(move || {

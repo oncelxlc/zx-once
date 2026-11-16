@@ -31,6 +31,7 @@ pub(in crate::island::notifications) fn verified_client(path: &Path, source: Sou
     if !path.is_absolute() || unsafe { GetDriveTypeW(root.as_ptr()) } != 3 {
         return false;
     }
+    // Deny writes and deletion while the signature and product name are checked against the same executable.
     let Ok(file) = OpenOptions::new()
         .read(true)
         .share_mode(FILE_SHARE_READ)

@@ -35,6 +35,10 @@ export interface NavGroup {
   hidden: boolean;
 }
 export type Theme = "system" | "light" | "dark";
+/**
+ * Each destination belongs to exactly one group. Pinning keeps its place there for when it is unpinned.
+ * Hiding the destination or its group also hides its pinned entry.
+ */
 export interface Preferences {
   theme: Theme;
   sidebar: "auto" | "expanded" | "collapsed";

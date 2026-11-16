@@ -32,6 +32,7 @@ export function IslandPreview({ config, desktop, report }: {
     }).catch(fail);
     return () => { active = false; off?.(); };
   }, [desktop, report]);
+  // Clearing the timer alone cannot cancel a pending native validation that might start playback later.
   const generation = useRef(0);
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   function show(state: PreviewState) {

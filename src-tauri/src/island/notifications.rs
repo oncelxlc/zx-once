@@ -54,6 +54,8 @@ pub enum Permission {
     Error,
 }
 
+/// Window icons and media artwork share the Direct2D upload format.
+/// Each row contains exactly `width * 4` bytes of premultiplied BGRA.
 #[derive(Debug, Eq, PartialEq, Serialize)]
 pub struct AppIcon {
     pub width: u32,

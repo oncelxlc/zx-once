@@ -23,6 +23,7 @@ export function GitHubPage() {
   const [params, setParams] = useSearchParams();
   const { accounts, accountId, repositories, items } = useSelector((state: RootState) => state.github);
   const detail = repositories.find(repo => repo.id === params.get("repo"));
+  // A repository deep link selects its owner's account for the detail and subsequent tab navigation.
   const activeAccount = detail?.accountId ?? accounts.find(account => account.id === params.get("account"))?.id ?? accountId;
   const tab = tabs.find(([key]) => key === params.get("tab"))?.[0] ?? "repositories";
   const owned = repositories.filter(repo => repo.accountId === activeAccount);

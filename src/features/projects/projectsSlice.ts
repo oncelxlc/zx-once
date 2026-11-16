@@ -1,5 +1,9 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 
+/**
+ * A zero lastOpened keeps a project out of Recent Projects until it is opened or pinned.
+ * Clear pinnedAt when unpinning so an old pin cannot outrank a more recently opened project.
+ */
 export interface Project {
   id: string;
   name: string;

@@ -19,6 +19,8 @@ use windows::{
 use windows_numerics::Vector2;
 use winreg::{enums::HKEY_CURRENT_USER, RegKey};
 
+/// Equality controls texture reuse. Include changes to painted pixels, such as DPI or hover.
+/// A move on the same monitor can reuse the pixels at the new compositor offset.
 #[derive(PartialEq)]
 pub(super) struct ImageKey {
     pub notch: Option<super::notch::Notch>,

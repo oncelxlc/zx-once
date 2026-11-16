@@ -246,6 +246,7 @@ impl Device {
         self.dc.SetTarget(&bitmap);
         self.dc.BeginDraw();
         let painted = self.painter.paint(&self.dc, key);
+        // Finish drawing and release the back buffer as a target even if painting failed.
         let ended = self.dc.EndDraw(None, None);
         self.dc.SetTarget(None);
         painted?;

@@ -113,6 +113,8 @@ pub(super) struct PerformanceStats {
     native: RenderStats,
 }
 
+/// Closing the surface advances `generation` so queued input and media updates from it expire.
+/// The separate `sequence` orders runtime snapshots for the frontend across surface restarts.
 pub(super) struct IslandManager {
     pub app: AppHandle,
     config: IslandConfig,
@@ -277,6 +279,7 @@ impl IslandManager {
         let resized = self.media.battery.is_some() != next.battery.is_some()
             || self.media.title.is_empty() != next.title.is_empty();
         let previous_position = self.media.position_ms;
+        // Compare metadata separately from normal playback ticks, which the preview advances locally.
         self.media.position_ms = next.position_ms;
         let notify_preview = self.media != next
             || !next.playing

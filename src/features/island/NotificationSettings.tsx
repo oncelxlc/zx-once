@@ -12,6 +12,10 @@ const permissionLabels: Record<NotificationPermission, string> = {
   error: "暂时无法读取 Windows 通知，可重新请求访问。",
 };
 
+/**
+ * enabled reflects the form draft. listening requires the saved island and notification switches on desktop.
+ * Both must be on before the form offers Windows permission actions.
+ */
 interface Props {
   enabled: boolean;
   listening: boolean;

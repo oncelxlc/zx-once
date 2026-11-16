@@ -24,6 +24,10 @@ const stateLabels: Record<IslandState, string> = {
   expanded: "已展开", pinned: "已固定", suspended: "全屏暂停",
 };
 
+/**
+ * A tray draft can already be saved by the time the window reopens. Compare values independently
+ * of revision and key order to recognize it. A non-finite field marks an incomplete draft.
+ */
 function settingsJson(config: IslandConfig) {
   let valid = true;
   const json = JSON.stringify(config, (key, value: unknown) => {

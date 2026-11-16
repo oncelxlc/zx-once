@@ -49,6 +49,7 @@ impl IslandManager {
             || previous.animation != self.config.animation
             || previous.appearance != self.config.appearance
             || previous.notifications != self.config.notifications;
+        // ConfigUpdated can change the state and timer before saving detects a revision conflict.
         let machine = self.machine.clone();
         let position = self.session_position.clone();
         let timer = self.timer;

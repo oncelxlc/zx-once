@@ -6,6 +6,10 @@ import { island } from "./islandSlice";
 
 const { configReceived, statusReceived, notificationsReceived, displaysReceived, errorChanged } = island.actions;
 
+/**
+ * Subscribe before reading native snapshots so changes during startup reach the store.
+ * Config, runtime and notification reducers discard stale snapshots by revision or sequence.
+ */
 export function useIsland() {
   const dispatch = useDispatch();
   const data = useSelector((state: RootState) => state.island);
@@ -31,6 +35,7 @@ export function useIsland() {
     const fail = (error: unknown) => { if (active) report(error); };
     const attach = async (subscription: Promise<() => void>) => {
       const off = await subscription;
+      // A retry or unmount can clean up this effect while Tauri is still registering the listener.
       if (active) removers.push(off);
       else off();
     };

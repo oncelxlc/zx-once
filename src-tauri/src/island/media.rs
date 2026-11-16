@@ -95,6 +95,8 @@ impl Worker {
         Ok(Self(send))
     }
 
+    /// Pass the snapshot shown when the user clicked. The worker skips commands for a changed source or title.
+    /// Success here means the command was queued. The player can still decline it.
     pub fn control(
         &self,
         track: &MediaSnapshot,
@@ -188,6 +190,7 @@ fn read(session: &Session, last: &MediaSnapshot) -> Result<MediaSnapshot> {
         let end = timeline.EndTime().unwrap_or_default().Duration;
         result.duration_ms = end.saturating_sub(start).max(0) / 10_000;
         let stamp = timeline.LastUpdatedTime().unwrap_or_default().UniversalTime;
+        // WinRT timestamps count 100 ns ticks from 1601. Compare in milliseconds to advance a playing track between updates.
         let now = SystemTime::now()
             .duration_since(UNIX_EPOCH)
             .unwrap_or_default()

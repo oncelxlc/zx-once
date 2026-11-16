@@ -9,6 +9,8 @@ use windows_sys::Win32::{
     UI::WindowsAndMessaging::*,
 };
 
+/// Both rectangles use physical screen pixels. During a transition the HWND covers the
+/// path to `target`, so hit tests must use the visible shape inside `host`.
 pub(super) struct Frame {
     pub cfg: IslandConfig,
     pub state: IslandState,
@@ -98,6 +100,7 @@ fn region(
         if region.is_null() {
             return Err(error("创建原生命中区域失败"));
         }
+        // SetWindowRgn takes ownership on success. On failure we still own the region.
         if SetWindowRgn(hwnd, region, 0) == 0 {
             let e = error("设置原生命中区域失败");
             DeleteObject(region);

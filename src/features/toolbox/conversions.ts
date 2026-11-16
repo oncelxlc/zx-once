@@ -30,6 +30,7 @@ export function convertBase64(input: string, decode: boolean) {
   if (decode) {
     const binary = atob(input);
     const bytes = Uint8Array.from(binary, character => character.charCodeAt(0));
+    // A text round trip must preserve a leading BOM and report malformed UTF-8.
     return new TextDecoder("utf-8", { fatal: true, ignoreBOM: true }).decode(bytes);
   }
   const bytes = new TextEncoder().encode(input);

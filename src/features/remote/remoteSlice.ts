@@ -22,6 +22,7 @@ const connections: Connection[] = [
 
 interface Transfer { id: number; hostId: string; file: string; completed: boolean }
 interface Session { id: number; hostId: string; lines: { command: string; reply: string }[] }
+// The terminal can open while disconnected and expects an initial session for every host.
 const sessions: Session[] = servers.map((host, index) => ({ id: index + 1, hostId: host.id, lines: [] }));
 const transfers: Transfer[] = [];
 

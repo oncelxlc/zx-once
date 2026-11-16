@@ -35,6 +35,9 @@ fn listener() -> Result<Listener, Permission> {
     }
 }
 
+/// Call on the settings UI thread so Windows can show the consent dialog.
+/// An unavailable listener calls `done` inline. A started request calls it asynchronously.
+/// If the request fails to start, the caller receives the error directly.
 pub fn request_access(
     done: impl FnOnce(Result<Permission, String>) + Send + 'static,
 ) -> Result<(), String> {
@@ -45,7 +48,6 @@ pub fn request_access(
             return Ok(());
         }
     };
-    // Starting the request here keeps the consent dialog on the settings UI thread.
     let request = listener
         .RequestAccessAsync()
         .map_err(|_| "无法请求 Windows 通知权限。")?;
@@ -105,6 +107,7 @@ impl Toasts {
                 .ok();
         }
         let result = self.collect(registry, stop);
+        // The user can revoke access while Windows is collecting the reminders.
         let current = self.access();
         match (current, result) {
             (Permission::Allowed, Ok(reminders)) => (current, reminders),

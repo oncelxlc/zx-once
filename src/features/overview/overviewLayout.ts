@@ -17,6 +17,7 @@ function isWidget(value: unknown): value is Widget {
 export function loadLayout(): Widget[] {
   const saved = readPreference(layoutKey);
   if (!Array.isArray(saved)) return defaultLayout;
+  // Drop the retired shortcuts widget before validation so old layouts keep their order and visibility.
   const current: unknown[] = saved.filter(item => item?.id !== "shortcuts");
   if (!current.every(isWidget) || new Set(current.map(item => item.id)).size !== current.length) return defaultLayout;
   return [...current, ...defaultLayout.filter(widget => !current.some(item => item.id === widget.id))];

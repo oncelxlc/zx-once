@@ -80,6 +80,7 @@ export function useWorkbenchNavigation() {
     const shortcut = (event: KeyboardEvent) => {
       if (!event.altKey || event.ctrlKey || event.metaKey || event.shiftKey || event.isComposing || event.defaultPrevented) return;
       if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
+      // Cancel browser navigation even in an editor, where the current page must stay open.
       event.preventDefault();
       if (event.target instanceof Element && event.target.closest(
         'input, textarea, select, [contenteditable]:not([contenteditable="false"]), [role="textbox"], [role="combobox"], [role="log"]',
