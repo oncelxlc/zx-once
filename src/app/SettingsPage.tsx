@@ -30,16 +30,17 @@ export function SettingsPage() {
   const section = sections.find(item => item.to === pathname) ?? sections[0];
   return <WorkbenchPage title="设置" view={section.to} navigation={<SecondaryNav label="工作台设置"
     links={sections.map(item => ({ ...item, active: item === section }))} />}>
-    {section.to === "/settings/navigation" ? <NavigationEditor /> : <>
+    {section.to === "/settings/navigation" ? <NavigationEditor /> :
+    <div className="grid w-full max-w-5xl grid-cols-[repeat(auto-fit,minmax(min(100%,22rem),1fr))] items-start gap-3">
       <Panel title="工作台主题">
-        <ToggleGroup aria-label="工作台主题" className="grid w-full grid-cols-[repeat(auto-fit,minmax(min(140px,100%),1fr))] gap-2"
+        <ToggleGroup aria-label="工作台主题" className="max-w-full flex-wrap"
           value={[theme]} onValueChange={values => {
             const next = themes.find(item => item.id === values[0]);
             if (next) dispatch(setTheme(next.id));
           }}>
           {themes.map(({ id, name, icon: Icon }) =>
-            <ToggleGroupItem key={id} value={id} className="min-h-9 justify-start gap-2 px-3">
-              <Icon aria-hidden="true" />{name}{theme === id && <Check className="ml-auto" aria-hidden="true" />}
+            <ToggleGroupItem key={id} value={id} className="min-h-9 gap-1.5">
+              <Icon aria-hidden="true" />{name}<Check aria-hidden="true" className="invisible group-aria-pressed/toggle:visible" />
             </ToggleGroupItem>)}
         </ToggleGroup>
       </Panel>
@@ -62,6 +63,6 @@ export function SettingsPage() {
           </Field>
         </FieldGroup>
       </Panel>
-    </>}
+    </div>}
   </WorkbenchPage>;
 }

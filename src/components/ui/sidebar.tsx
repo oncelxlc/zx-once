@@ -469,7 +469,11 @@ function SidebarMenuItem({ className, ...props }: React.ComponentProps<"li">) {
 }
 
 const sidebarMenuButtonVariants = cva(
-  "peer/menu-button group/menu-button relative flex w-full items-center gap-2 overflow-hidden rounded-md p-2 text-left text-sm ring-sidebar-ring outline-hidden transition-[width,height,padding,background-color,color] group-has-data-[sidebar=menu-action]/menu-item:pr-8 group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2! hover:bg-muted hover:text-sidebar-accent-foreground focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-open:hover:bg-muted data-open:hover:text-sidebar-accent-foreground data-active:bg-sidebar-accent data-active:font-medium data-active:before:absolute data-active:before:start-0 data-active:before:inset-y-1.5 data-active:before:w-0.5 data-active:before:bg-sidebar-primary data-active:[&>svg]:text-sidebar-primary data-active:text-sidebar-accent-foreground [&_svg]:size-4 [&_svg]:shrink-0 [&>span:last-child]:truncate",
+  [
+    // Let the sidebar own the width transition so the icon stays anchored as the label fades.
+    "peer/menu-button group/menu-button relative flex w-full items-center gap-2 overflow-hidden rounded-md p-2 text-left text-sm ring-sidebar-ring outline-hidden transition-[height,padding,background-color,color] motion-reduce:transition-none group-has-data-[sidebar=menu-action]/menu-item:pr-8 group-data-[collapsible=icon]:h-8! group-data-[collapsible=icon]:p-2! hover:bg-muted hover:text-sidebar-accent-foreground focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-open:hover:bg-muted data-open:hover:text-sidebar-accent-foreground data-active:bg-sidebar-accent data-active:font-medium data-active:before:absolute data-active:before:start-0 data-active:before:inset-y-1.5 data-active:before:w-0.5 data-active:before:bg-sidebar-primary data-active:[&>svg]:text-sidebar-primary data-active:text-sidebar-accent-foreground [&_svg]:size-4 [&_svg]:shrink-0",
+    "[&>span:last-child]:truncate [&>span:last-child]:transition-opacity [&>span:last-child]:duration-200 group-data-[collapsible=icon]:[&>span:last-child]:opacity-0 motion-reduce:[&>span:last-child]:transition-none",
+  ],
   {
     variants: {
       variant: {
@@ -508,7 +512,7 @@ function SidebarMenuButton({
     defaultTagName: "button",
     props: mergeProps<"button">(
       {
-        className: cn(sidebarMenuButtonVariants({ variant, size }), "group-data-[collapsible=icon]:mx-auto motion-reduce:transition-none", className),
+        className: cn(sidebarMenuButtonVariants({ variant, size }), className),
       },
       props
     ),

@@ -59,6 +59,7 @@ export function IslandSettingsPage() {
   const draft = saved && (edit ?? saved);
   const [search] = useSearchParams();
   const [group, groupLabel] = groups.find(([key]) => key === search.get("group")) ?? groups[0];
+  const singleColumn = group === "overview" || group === "notifications";
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState("");
   const conflict = edit && saved && edit.revision !== saved.revision;
@@ -84,17 +85,20 @@ export function IslandSettingsPage() {
   return (
     <WorkbenchPage title="灵动岛设置" view={group} navigation={<QueryNavigation label="设置分组"
       param="group" items={groups} current={group} omitDefault />}>
-      <Panel title={groupLabel}>
-        <form onSubmit={event => {
-          event.preventDefault();
-          if (desktop && saved && edit && !busy && !conflict) void commit(() => islandApi.save(edit));
-        }}>
+      <form className={singleColumn ? "max-w-xl" : "max-w-5xl"} onSubmit={event => {
+        event.preventDefault();
+        if (desktop && saved && edit && !busy && !conflict) void commit(() => islandApi.save(edit));
+      }}>
+        <Panel title={groupLabel}>
           <FieldGroup>
             {!desktop && <Alert role="note"><AlertDescription>浏览器可预览草稿。保存设置和控制窗口需使用 Windows 桌面应用。</AlertDescription></Alert>}
             {error && <Alert variant="destructive"><AlertDescription>{error}</AlertDescription></Alert>}
             {draft ? <>
               <IslandFieldsDisabled.Provider value={busy}>
-                <FieldSet disabled={busy} aria-label={groupLabel}>
+                {/* The field group measures the space left by both navigation columns. */}
+                <FieldSet disabled={busy} aria-label={groupLabel} className={singleColumn
+                  ? "min-w-0"
+                  : "grid min-w-0 grid-cols-1 items-start gap-x-8 gap-y-2 @2xl/field-group:grid-cols-2 [&>section]:col-span-full"}>
                   {group === "overview" && <>
                     <FieldDescription>窗口状态 · {status ? stateLabels[status.state] : desktop ? "正在连接" : "浏览器预览"}</FieldDescription>
                     <Check label="启用灵动岛" value={draft.enabled} change={enabled => editConfig({ ...draft, enabled })} />
@@ -128,8 +132,8 @@ export function IslandSettingsPage() {
             </> : error ? <Button variant="outline" onClick={retry}>重新读取设置</Button>
               : <p role="status">正在读取桌面设置…</p>}
           </FieldGroup>
-        </form>
-      </Panel>
+        </Panel>
+      </form>
     </WorkbenchPage>
   );
 }

@@ -1,5 +1,5 @@
 import type { IslandDisplay } from "./islandApi";
-import { FieldDescription } from "../../components/ui/field";
+import { FieldDescription, FieldGroup } from "../../components/ui/field";
 import defaults from "./defaults.json";
 import { isDefaultDarkSurface, lightSurface } from "./settingsStyles";
 import type { IslandConfig } from "./types";
@@ -49,10 +49,12 @@ export function SettingsGroups({ group, config, displays, update }: Props) {
     case "edge": {
       const mode = edge.autoHide && edge.mode !== "disabled" ? edge.mode : "compact";
       return <>
-        <Choice label="指针离开并收起后" value={mode} change={mode => update(group, { mode, autoHide: true })} options={[
-          ["compact", "保持收起"], ["peek", "仅露出边缘条"], ["fullHide", "完全隐藏"],
-        ]} />
-        {mode === "fullHide" && <FieldDescription>完全隐藏后，可从托盘菜单重新显示。</FieldDescription>}
+        <FieldGroup className="gap-1">
+          <Choice label="指针离开并收起后" value={mode} change={mode => update(group, { mode, autoHide: true })} options={[
+            ["compact", "保持收起"], ["peek", "仅露出边缘条"], ["fullHide", "完全隐藏"],
+          ]} />
+          {mode === "fullHide" && <FieldDescription>完全隐藏后，可从托盘菜单重新显示。</FieldDescription>}
+        </FieldGroup>
         {mode !== "compact" && <Amount label="隐藏延迟（毫秒）" value={edge.hideDelayMs} min={0} max={60000} change={hideDelayMs => update(group, { hideDelayMs })} />}
         {mode === "peek" && <Amount label="唤醒延迟（毫秒）" value={edge.wakeDelayMs} min={0} max={60000} change={wakeDelayMs => update(group, { wakeDelayMs })} />}
         <Check label="全屏应用运行时隐藏" value={edge.hideOnFullscreen} change={hideOnFullscreen => update(group, { hideOnFullscreen })} />

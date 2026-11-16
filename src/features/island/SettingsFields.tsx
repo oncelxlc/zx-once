@@ -47,7 +47,7 @@ export function IslandSlider({ position, value, change }: {
   const reset = position ? 0 : 100;
   const label = position === "vertical" ? "上下位置（%）" : position === "horizontal" ? "左右位置（%）" : "岛体大小（%）";
   const disabled = useContext(IslandFieldsDisabled);
-  return <Field orientation="horizontal" data-disabled={disabled || undefined} className="min-h-10 flex-wrap justify-between">
+  return <Field orientation="horizontal" data-disabled={disabled || undefined} className="col-span-full min-h-10 flex-wrap">
     <span>{label}</span>
     <div {...stylex.props(s.controls)}>
       {position && <Button variant="outline" size="icon-sm" aria-label={position === "vertical" ? "向上微调" : "向左微调"}
@@ -69,8 +69,9 @@ export function Choice<T extends string>({ label, value, options, change }: {
 }) {
   const id = useId();
   const disabled = useContext(IslandFieldsDisabled);
-  return <Field orientation="horizontal" data-disabled={disabled || undefined} className="min-h-10 justify-between">
-    <FieldLabel htmlFor={id}>{label}</FieldLabel>
+  return <Field orientation="horizontal" data-disabled={disabled || undefined}
+    className="min-h-10 justify-between [&>[data-slot=select-trigger]]:min-w-0">
+    <FieldLabel className="whitespace-nowrap" htmlFor={id}>{label}</FieldLabel>
     <ChoiceSelect id={id} aria-label={label} disabled={disabled} value={value} onValueChange={change}
       options={options.map(([value, label]) => ({ value, label }))} />
   </Field>;

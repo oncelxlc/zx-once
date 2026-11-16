@@ -11,7 +11,7 @@ import { ChoiceSelect } from "./ChoiceSelect";
 import type { RootState } from "../store";
 import { destinations, type NavGroup, type NavId } from "./navigation";
 import { addGroup, moveGroup, moveItem, renameGroup, resetNavigation, toggleGroupVisibility, toggleHidden, togglePin } from "./preferencesSlice";
-import { Dialog, Panel } from "./workbenchUi";
+import { Dialog } from "./workbenchUi";
 
 type Dragged = { type: "group"; id: string } | { type: "item"; id: NavId };
 
@@ -49,9 +49,12 @@ export function NavigationEditor() {
     else dispatch(moveItem({ id: source.id, groupId: group.id, index: itemIndex }));
     dragged.current = null;
   }
-  return <div className="flex min-w-0 flex-col gap-3" onDragEnd={() => { dragged.current = null; }}>
-    <Panel title="导航分组" action={<Button variant="outline" onClick={() => setReset(true)}><RotateCcw size={14} /> 恢复默认</Button>}>
-      <form className="flex flex-wrap items-center gap-2" onSubmit={event => {
+  // Size the columns from the editor's remaining width so opening the sidebar can reflow the cards.
+  return <div className="grid min-w-0 max-w-[90rem] grid-cols-[repeat(auto-fit,minmax(min(100%,27rem),1fr))] items-start gap-3"
+    onDragEnd={() => { dragged.current = null; }}>
+    <section aria-labelledby="nav-group-title" className="col-span-full flex flex-wrap items-center gap-2">
+      <h2 id="nav-group-title" className="mr-1 text-sm font-semibold">导航分组</h2>
+      <form className="flex max-w-full flex-wrap items-center gap-2" onSubmit={event => {
         event.preventDefault();
         if (name.trim()) { dispatch(addGroup({ id: nanoid(), title: name })); setName(""); }
       }}>
@@ -59,7 +62,8 @@ export function NavigationEditor() {
           <Input id="new-nav-group" placeholder="新分组名称" value={name} onChange={event => setName(event.target.value)} maxLength={40} /></Field>
         <Button type="submit" disabled={!name.trim()}><Plus size={14} /> 新建分组</Button>
       </form>
-    </Panel>
+      <Button variant="outline" onClick={() => setReset(true)}><RotateCcw size={14} /> 恢复默认</Button>
+    </section>
     {groups.map((group, groupIndex) =>
       <Card key={group.id} aria-label={group.title} className="gap-0 py-0"
         onDragOver={event => { if (dragged.current) event.preventDefault(); }}

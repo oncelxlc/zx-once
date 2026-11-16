@@ -12,8 +12,6 @@ import { moveItem, resetNavigation, toggleHidden, togglePin } from "./preference
 
 function SidebarItem({ id, current, onNavigate }: { id: NavId; current: boolean; onNavigate: () => void }) {
   const dispatch = useDispatch();
-  const { open, isMobile } = useSidebar();
-  const compact = !isMobile && !open;
   const { pins, groups } = useSelector((state: RootState) => state.preferences);
   const { icon: Icon, label, to } = destinations[id];
   return <SidebarMenuItem>
@@ -21,7 +19,7 @@ function SidebarItem({ id, current, onNavigate }: { id: NavId; current: boolean;
       <ContextMenuTrigger>
         <SidebarMenuButton render={<Link to={to} />} isActive={current} tooltip={label}
           aria-label={label} aria-current={current ? "page" : undefined} onClick={onNavigate}>
-          <Icon aria-hidden="true" />{!compact && <span>{label}</span>}
+          <Icon aria-hidden="true" /><span>{label}</span>
         </SidebarMenuButton>
       </ContextMenuTrigger>
       <ContextMenuContent aria-label={label}>
@@ -51,7 +49,7 @@ export function AppSidebar() {
 
   function renderGroup(id: string, title: string, items: NavId[]) {
     if (!items.length) return null;
-    return <SidebarGroup key={id}>
+    return <SidebarGroup key={id} className="md:px-2.5">
       <SidebarGroupLabel aria-hidden={compact}>{title}</SidebarGroupLabel>
       <SidebarGroupContent><SidebarMenu>
         {items.map(item => <SidebarItem key={item} id={item} current={item === current} onNavigate={leave} />)}
@@ -65,11 +63,11 @@ export function AppSidebar() {
       {renderGroup("favorites", "收藏", favorites)}
       {visibleGroups.map(group => renderGroup(group.id, group.title, group.items.filter(id => visible.includes(id) && !favorites.includes(id))))}
     </SidebarContent>
-    <SidebarFooter className="shrink-0">
+    <SidebarFooter className="shrink-0 md:px-2.5">
       <SidebarMenu><SidebarMenuItem>
         <SidebarMenuButton render={<Link to="/settings" />} isActive={settings} tooltip="设置"
           aria-label="设置" aria-current={settings ? "page" : undefined} onClick={leave}>
-          <Settings aria-hidden="true" />{!compact && <span>设置</span>}
+          <Settings aria-hidden="true" /><span>设置</span>
         </SidebarMenuButton>
       </SidebarMenuItem></SidebarMenu>
     </SidebarFooter>

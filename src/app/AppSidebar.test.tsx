@@ -25,7 +25,7 @@ it.each(["focus", "hover"])("labels collapsed links and reveals their tooltips o
     <TooltipProvider><SidebarProvider defaultOpen={false}><AppSidebar /></SidebarProvider></TooltipProvider>
   </MemoryRouter></Provider>);
   const projects = screen.getByRole("link", { name: "项目", current: "page" });
-  expect(projects.textContent).toBe("");
+  expect(projects.textContent).toBe("项目");
   expect(screen.getByRole("link", { name: "设置" })).toBeTruthy();
   if (interaction === "focus") {
     act(() => projects.focus());
@@ -33,5 +33,5 @@ it.each(["focus", "hover"])("labels collapsed links and reveals their tooltips o
     fireEvent.pointerEnter(projects, { pointerType: "mouse" });
     fireEvent.mouseEnter(projects);
   }
-  expect(await screen.findByText("项目")).toBeTruthy();
+  expect(await screen.findByText("项目", { selector: '[data-slot="tooltip-content"]' })).toBeTruthy();
 });
