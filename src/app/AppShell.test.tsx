@@ -8,7 +8,7 @@ import { afterEach, expect, it, vi } from "vitest";
 import App from "../App";
 import { createAppStore } from "../store";
 import { AppShell } from "./AppShell";
-import { setTheme } from "./preferencesSlice";
+import { setTheme, setTranslucency, setTransparencyPercent } from "./preferencesSlice";
 
 afterEach(() => { cleanup(); clearMocks(); vi.restoreAllMocks(); vi.unstubAllGlobals(); });
 
@@ -18,26 +18,37 @@ function mount() {
   return store;
 }
 
-it("sends the resolved sidebar colors on mount, theme changes and contrast changes", async () => {
+it("syncs one frame transparency with the theme and accessibility settings", async () => {
   vi.stubGlobal("isTauri", true);
   vi.spyOn(navigator, "userAgent", "get").mockReturnValue("Windows NT");
   const system = Object.assign(new EventTarget(), { matches: false });
-  const contrast = new EventTarget();
+  const contrast = Object.assign(new EventTarget(), { matches: false });
+  const reduced = Object.assign(new EventTarget(), { matches: false });
   vi.stubGlobal("matchMedia", (query: string) => query === "(prefers-color-scheme: dark)" ? system
-    : query === "(forced-colors: active)" ? contrast : new EventTarget());
+    : query === "(forced-colors: active)" ? contrast
+    : query === "(prefers-reduced-transparency: reduce)" ? reduced : new EventTarget());
   const sheet = document.createElement("style");
   sheet.textContent = `
     :root { --sidebar: #fefefe; --sidebar-foreground: #123456; --sidebar-border: #dddddd; }
     :root.dark { --sidebar: #181818; --sidebar-foreground: #abcdef; --sidebar-border: #333333; }
   `;
   document.head.append(sheet);
-  const ipc = vi.fn();
-  mockIPC((cmd, args) => { if (cmd === "set_main_window_chrome") ipc(cmd, args); }, { shouldMockEvents: true });
+  const ipc = vi.fn().mockResolvedValue(true);
+  mockIPC((cmd, args) => { if (cmd === "set_main_window_chrome") return ipc(cmd, args); }, { shouldMockEvents: true });
   const store = mount();
-  const light = { dark: false, background: "#fefefe", foreground: "#123456", border: "#dddddd" };
-  const dark = { dark: true, background: "#181818", foreground: "#abcdef", border: "#333333" };
+  const light = { dark: false, transparencyPercent: 65, background: "#fefefe", foreground: "#123456", border: "#dddddd" };
+  const dark = { dark: true, transparencyPercent: 65, background: "#181818", foreground: "#abcdef", border: "#333333" };
+  const solid = { ...light, transparencyPercent: 0 };
   try {
     await waitFor(() => expect(ipc).toHaveBeenLastCalledWith("set_main_window_chrome", light));
+    expect(document.documentElement.dataset.nativeBackdrop).toBe("true");
+    ipc.mockClear();
+    await act(async () => {
+      window.dispatchEvent(new Event("blur"));
+      window.dispatchEvent(new Event("focus"));
+    });
+    expect(document.documentElement.dataset.nativeBackdrop).toBe("true");
+    expect(ipc).not.toHaveBeenCalled();
     system.matches = true;
     act(() => system.dispatchEvent(new Event("change")));
     await waitFor(() => expect(ipc).toHaveBeenLastCalledWith("set_main_window_chrome", dark));
@@ -47,21 +58,45 @@ it("sends the resolved sidebar colors on mount, theme changes and contrast chang
     system.matches = false;
     act(() => system.dispatchEvent(new Event("change")));
     await waitFor(() => expect(ipc).toHaveBeenCalledExactlyOnceWith("set_main_window_chrome", light));
-    ipc.mockClear();
-    act(() => contrast.dispatchEvent(new Event("change")));
-    await waitFor(() => expect(ipc).toHaveBeenCalledExactlyOnceWith("set_main_window_chrome", light));
+    for (const preference of [contrast, reduced]) {
+      preference.matches = true;
+      act(() => preference.dispatchEvent(new Event("change")));
+      await waitFor(() => expect(ipc).toHaveBeenLastCalledWith("set_main_window_chrome", solid));
+      expect(document.documentElement.dataset.nativeBackdrop).toBe("false");
+      preference.matches = false;
+      act(() => preference.dispatchEvent(new Event("change")));
+      await waitFor(() => expect(document.documentElement.dataset.nativeBackdrop).toBe("true"));
+    }
+    act(() => { store.dispatch(setTransparencyPercent(33)); });
+    // Moving the slider should keep the current native surface until the next tint is ready.
+    expect(document.documentElement.dataset.nativeBackdrop).toBe("true");
+    await waitFor(() => expect(ipc).toHaveBeenLastCalledWith("set_main_window_chrome", { ...light, transparencyPercent: 33 }));
+    act(() => { store.dispatch(setTranslucency(false)); });
+    await waitFor(() => expect(ipc).toHaveBeenLastCalledWith("set_main_window_chrome", solid));
+    expect(document.documentElement.dataset.nativeBackdrop).toBe("false");
+    ipc.mockResolvedValue(false);
+    act(() => { store.dispatch(setTranslucency(true)); });
+    await waitFor(() => expect(ipc).toHaveBeenLastCalledWith("set_main_window_chrome", { ...light, transparencyPercent: 33 }));
+    expect(document.documentElement.dataset.nativeBackdrop).toBe("false");
   } finally {
     sheet.remove();
   }
 });
 
-it("keeps browser theme changes local", async () => {
+it("applies browser appearance changes to the document, including portalled navigation", async () => {
   vi.stubGlobal("isTauri", false);
   const ipc = vi.fn();
   mockIPC(ipc);
   const store = mount();
-  await act(async () => { store.dispatch(setTheme("dark")); });
+  await act(async () => {
+    store.dispatch(setTheme("dark"));
+    store.dispatch(setTranslucency(true));
+    store.dispatch(setTransparencyPercent(85));
+  });
   expect(document.documentElement.dataset.theme).toBe("dark");
+  expect(document.documentElement.dataset.nativeBackdrop).toBeUndefined();
+  expect(document.documentElement.dataset.translucent).toBe("true");
+  expect(document.documentElement.style.getPropertyValue("--frame-transparency")).toBe("85%");
   expect(ipc).not.toHaveBeenCalled();
 });
 

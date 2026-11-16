@@ -2,6 +2,56 @@
 import { readFileSync } from "node:fs";
 import { expect, it, onTestFinished } from "vitest";
 
+it("composites the outer frame once while the page header and content keep their theme fill", () => {
+  const root = document.documentElement;
+  const frame = document.createElement("div");
+  frame.dataset.slot = "sidebar-wrapper";
+  const sidebar = document.createElement("aside");
+  sidebar.dataset.slot = "sidebar-inner";
+  const header = document.createElement("header");
+  header.dataset.slot = "workbench-header";
+  const footer = document.createElement("footer");
+  footer.dataset.slot = "workbench-status";
+  const main = document.createElement("main");
+  frame.append(sidebar, header, main, footer);
+  const style = document.createElement("style");
+  // The utility classes normally supply solid fills after Tailwind compilation.
+  style.textContent = 'html, body, [data-slot^="sidebar-"] { background-color: black; } main { background-color: var(--background); }\n'
+    + readFileSync("src/styles.css", "utf8");
+  document.head.append(style);
+  document.body.append(frame);
+  root.dataset.translucent = "true";
+  onTestFinished(() => {
+    delete root.dataset.translucent;
+    delete root.dataset.nativeBackdrop;
+    frame.remove();
+    style.remove();
+  });
+
+  // jsdom supports screen media but does not emulate OS color and transparency preferences.
+  const media = [...(style.sheet?.cssRules ?? [])].find((rule): rule is CSSMediaRule =>
+    rule instanceof CSSMediaRule && rule.conditionText.includes("prefers-reduced-transparency"));
+  if (!media) throw new Error("Missing translucency media rule");
+  expect(media.conditionText).toContain("forced-colors: none");
+  media.media.mediaText = "screen";
+  const fill = (element: Element) => getComputedStyle(element).backgroundColor;
+  const transparent = "rgba(0, 0, 0, 0)";
+  expect(fill(frame)).toContain("--frame-transparency");
+  for (const native of [undefined, "false", "true"]) {
+    if (native) root.dataset.nativeBackdrop = native;
+    expect(fill(sidebar)).toBe(transparent);
+    expect(fill(footer)).toBe(transparent);
+    expect(fill(header)).toBe(fill(main));
+    expect(fill(header)).not.toBe(transparent);
+    if (native === "false") expect(fill(frame)).toBe("rgb(0, 0, 0)");
+    if (native === "true") {
+      for (const surface of [root, document.body, frame]) expect(fill(surface)).toBe(transparent);
+    }
+  }
+  media.media.mediaText = "print";
+  for (const element of [root, document.body, frame, sidebar]) expect(fill(element)).toBe("rgb(0, 0, 0)");
+});
+
 it("resolves the dark workbench palette and sidebar aliases to neutral graphite", () => {
   const style = document.createElement("style");
   style.textContent = readFileSync("src/styles.css", "utf8");

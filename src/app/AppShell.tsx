@@ -19,40 +19,72 @@ export function AppShell() {
   const preferences = useSelector((state: RootState) => state.preferences);
   const dispatch = useDispatch();
   const captionUpdate = useRef(Promise.resolve());
+  const { enabled, percent } = preferences.translucency;
+  const transparencyPercent = enabled ? percent : 0;
 
   useEffect(() => { persistPreferences(preferences); }, [preferences]);
+  useLayoutEffect(() => {
+    // The mobile navigation is portalled outside the shell and inherits appearance from the document.
+    const root = document.documentElement;
+    root.dataset.translucent = String(enabled);
+    root.style.setProperty("--frame-transparency", `${percent}%`);
+    return () => {
+      delete root.dataset.translucent;
+      root.style.removeProperty("--frame-transparency");
+    };
+  }, [enabled, percent]);
+  useLayoutEffect(() => {
+    if (!isWindowsDesktop()) return;
+    const root = document.documentElement;
+    // Keep the confirmed backdrop visible between slider updates. Only unmount releases this marker.
+    root.dataset.nativeBackdrop = "false";
+    return () => { delete root.dataset.nativeBackdrop; };
+  }, []);
   useLayoutEffect(() => {
     const root = document.documentElement;
     const systemTheme = window.matchMedia?.("(prefers-color-scheme: dark)");
     const desktop = isWindowsDesktop();
     const forcedColors = desktop ? window.matchMedia?.("(forced-colors: active)") : undefined;
-    let active = true;
+    const reducedTransparency = desktop ? window.matchMedia?.("(prefers-reduced-transparency: reduce)") : undefined;
+    let revision = 0;
     const apply = () => {
       const dark = preferences.theme === "dark" || (preferences.theme === "system" && Boolean(systemTheme?.matches));
       root.classList.toggle("dark", dark);
       root.dataset.theme = dark ? "dark" : "light";
       if (!desktop) return;
-      // Apply IPC updates in order so a previous theme cannot overwrite the current caption.
-      captionUpdate.current = captionUpdate.current.then(() => {
-        if (!active) return;
+      const request = ++revision;
+      const effectivePercent = forcedColors?.matches || reducedTransparency?.matches ? 0 : transparencyPercent;
+      if (effectivePercent === 0) root.dataset.nativeBackdrop = "false";
+      // Serialize HWND changes and use only the current reply to expose the WebView's transparent canvas.
+      captionUpdate.current = captionUpdate.current.then(async () => {
+        if (request !== revision) return;
         const colors = getComputedStyle(root);
-        return invoke<void>("set_main_window_chrome", {
-          dark: root.classList.contains("dark"),
+        const available = await invoke<boolean>("set_main_window_chrome", {
+          dark,
+          transparencyPercent: effectivePercent,
           background: colors.getPropertyValue("--sidebar").trim(),
           foreground: colors.getPropertyValue("--sidebar-foreground").trim(),
           border: colors.getPropertyValue("--sidebar-border").trim(),
         });
-      }).catch(error => { console.warn("无法同步原生标题栏配色", error); });
+        if (request !== revision) return;
+        root.dataset.nativeBackdrop = String(available === true && effectivePercent > 0);
+      }).catch(error => {
+        if (request !== revision) return;
+        root.dataset.nativeBackdrop = "false";
+        console.warn("无法同步原生窗口外观", error);
+      });
     };
     apply();
     systemTheme?.addEventListener("change", apply);
     forcedColors?.addEventListener("change", apply);
+    reducedTransparency?.addEventListener("change", apply);
     return () => {
-      active = false;
+      revision++;
       systemTheme?.removeEventListener("change", apply);
       forcedColors?.removeEventListener("change", apply);
+      reducedTransparency?.removeEventListener("change", apply);
     };
-  }, [preferences.theme]);
+  }, [preferences.theme, transparencyPercent]);
 
   return <TooltipProvider>
     <SidebarProvider className="h-dvh min-h-0 flex-col overflow-hidden bg-sidebar text-foreground"
@@ -72,19 +104,19 @@ function Workspace() {
   useEffect(() => { setOpenMobile(false); }, [isMobile, location.key, setOpenMobile]);
   return <div className="flex min-h-0 min-w-0 flex-1 overflow-hidden">
     <AppSidebar />
-    <div className="m-1 flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-xl bg-background shadow-sm md:m-1.5 md:ml-0">
-      <Suspense fallback={<p role="status" className="p-4">正在打开页面…</p>}><Outlet /></Suspense>
+    <div className="m-1 flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-xl bg-background md:m-1.5 md:ml-0">
+      <Suspense fallback={<p role="status" className="flex-1 bg-background p-4">正在打开页面…</p>}><Outlet /></Suspense>
     </div>
   </div>;
 }
 
 function StatusBar() {
   const connected = useSelector((state: RootState) => state.remote.connections.filter(item => item.connected).length);
-  return <footer aria-label="工作台状态" {...stylex.props(shell.status)}>
+  return <footer data-slot="workbench-status" aria-label="工作台状态" {...stylex.props(shell.status)}>
     <WindowNavigation />
     <span title="本地工作区" {...stylex.props(shell.statusItem)}><Terminal size={13} aria-hidden="true" />
       <span className="max-[359px]:sr-only">本地工作区</span></span>
-    <Button render={<Link to="/remote?tab=connections" />} nativeButton={false} variant="link" size="xs">
+    <Button render={<Link to="/remote?tab=connections" />} nativeButton={false} variant="link" size="xs" className="text-sidebar-foreground">
       <Cable aria-hidden="true" />演示连接 · {connected}
     </Button>
     <span {...stylex.props(shell.version)}>v{version}</span>

@@ -14,8 +14,21 @@ pub fn run() {
     let builder = tauri::Builder::default();
     #[cfg(windows)]
     let builder = island::install(builder);
+    let mut context = tauri::generate_context!();
+    if cfg!(windows) {
+        // Both startup and tray recreation build the HWND and WebView2 controller from this config.
+        if let Some(main) = context
+            .config_mut()
+            .app
+            .windows
+            .iter_mut()
+            .find(|window| window.label == "main")
+        {
+            main.transparent = true;
+        }
+    }
     let app = builder
-        .build(tauri::generate_context!())
+        .build(context)
         .expect("error while building tauri application");
     app.run(|_, _event| {
         #[cfg(windows)]

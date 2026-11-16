@@ -24,7 +24,7 @@ export function ProjectCollection({ projects, grid }: { projects: Project[]; gri
   });
 
   if (grid) return <div {...stylex.props(ui.grid)}>
-    {entries.map(({ project, name, git }) => <Card key={project.id} role="article">
+    {entries.map(({ project, name, git }) => <Card key={project.id} size="sm" role="article">
       <CardHeader><CardTitle role="heading" aria-level={3}>{name}</CardTitle></CardHeader>
       <CardContent><div {...stylex.props(ui.stack)}>
         <span {...stylex.props(ui.mono, ui.muted, styles.path)}>{project.path}</span>
@@ -51,5 +51,5 @@ export function ProjectCollection({ projects, grid }: { projects: Project[]; gri
 
 const styles = stylex.create({
   name: { display: "inline-flex", alignItems: "center", gap: 7, fontWeight: 600, overflowWrap: "anywhere" },
-  path: { fontSize: 12, overflowWrap: "anywhere" },
+  path: { fontSize: "0.75rem", overflowWrap: "anywhere" },
 });

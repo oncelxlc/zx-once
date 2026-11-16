@@ -15,7 +15,7 @@ import type { Server } from "./remoteSamples";
 const styles = stylex.create({
   transcript: {
     padding: 16, marginBlock: 0, minHeight: 144, borderRadius: 6, backgroundColor: "var(--muted)",
-    overflowWrap: "anywhere", whiteSpace: "pre-wrap", fontFamily: "var(--mono)", fontSize: 13,
+    overflowWrap: "anywhere", whiteSpace: "pre-wrap", fontFamily: "var(--mono)", fontSize: "0.8125rem",
   },
 });
 

@@ -6,11 +6,13 @@
 
 浅色值定义在 `:root`，深色值由 `:root.dark` 覆盖。StyleX 可以直接使用 `var(--card)` 等颜色。shadcn/ui 通过 Tailwind 的 `@theme inline` 将同一变量映射为 `bg-card`、`text-foreground`、`border-input` 和 `ring-ring` 等工具类。[主题变量定义](../../../src/styles.css)
 
-主导航与状态栏共用外框底色，衬出主内容区的圆角。页头与正文共用页面底色，二级导航和内容面板通过底色区分，导航分组通过留白区分。页头保留页面标题和主要操作。参数解释、风险提示和错误信息随对应控件呈现，空状态在内容区就近提供下一步操作。[共享页面布局](../../../src/app/WorkbenchPage.tsx)
+固定页头内的标题为 1rem，二级导航为 0.8rem，正文和面板标题为 0.875rem。面板标题使用较高字重，资源路径和辅助文字使用较小字号。二级导航当前项用主题选中底色、细边框和字重标识，键盘焦点单独描边。[共享页面布局](../../../src/app/WorkbenchPage.tsx)
+
+「设置 → 外观 → 半透明效果」中的百分比控制整个外框。桌面侧栏、底栏和圆角留白透出同一层背景，页头与正文共用实色圆角容器。浏览器用主题色作为外框的底层，窄窗抽屉叠在正文上，使用较实的底色和模糊效果。Windows 无法应用材质，或系统要求强制颜色、减少透明时，外框使用实色。[外观设置](../../../src/app/SettingsPage.tsx) · [表面样式](../../../src/styles.css)
 
 | CSS 变量 | 浅色 | 深色 | 用途 |
 | --- | --- | --- | --- |
-| `--background` | `#F5F6F7` | `#181818` | 页头、页面内容区底色 |
+| `--background` | `#F5F6F7` | `#181818` | 实色页头和页面内容区底色 |
 | `--foreground` | `#20262D` | `#E6E6E6` | 标题、正文 |
 | `--sidebar`、`--sidebar-background` | `#F0F2F4` | `#1D1D1D` | 一级导航与底部状态栏底色，以及 Windows 原生标题栏的目标底色 |
 | `--sidebar-foreground` | `#20262D` | `#E0E0E0` | 侧栏文字 |
@@ -36,7 +38,9 @@
 
 按钮默认只显示图标。悬停、侧栏展开和按下时，分别把 8%、12% 和 18% 的前景色混入底色，按下时反馈最明显。返回和前进不可用时，图标降至 40% 强度。按钮名称通过浮动提示显示。[原生按钮绘制](../../../src-tauri/src/caption_navigation/paint.rs)
 
-主窗口加载和工作台主题切换时，`set_main_window_chrome` 将当前明暗模式同步给 Windows，并使用 `--sidebar`、`--sidebar-foreground` 和 `--sidebar-border` 分别设置标题栏背景、文字和窗口边框。Windows 11 从内部版本 22000 起支持这三项颜色属性。每项 DWM 属性单独应用，旧版系统对不支持的属性使用系统外观。启用 Windows 高对比度时，标题栏恢复系统配色。[Microsoft DWM 窗口属性](https://learn.microsoft.com/en-us/windows/win32/api/dwmapi/ne-dwmapi-dwmwindowattribute)
+Windows 主窗口首次创建和从托盘重建时均启用 WebView2 透明背景。`set_main_window_chrome` 按主题底色和透明度为窗口设置一层 Acrylic，并把窗口边框延伸到客户区。系统接受材质后，WebView 让桌面侧栏、底栏和内容区外的留白透出同一层材质。主窗口固定使用同一套活动外观，切换焦点不会修改选定的染色参数。[桌面入口](../../../src-tauri/src/lib.rs) · [窗口实现](../../../src-tauri/src/window_chrome.rs)
+
+0% 表示实色，100% 表示原生材质最透的一档，染色 alpha 为 1/255。窗口使用显式的 Acrylic 染色策略，系统关闭透明效果或无法提供相应窗口属性时恢复实色。标题栏按钮逐像素合成图标和交互反馈，图标周围保留完整命中区域。高对比度模式使用系统配色。[原生材质](../../../src-tauri/src/window_chrome/accent.rs) · [标题栏按钮合成](../../../src-tauri/src/caption_navigation/layer.rs)
 
 ### 状态色
 

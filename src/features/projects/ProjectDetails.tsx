@@ -64,6 +64,6 @@ const styles = stylex.create({
     display: "grid", gridTemplateColumns: "max-content minmax(0, 1fr)", gap: "12px 16px",
     alignItems: "baseline", margin: 0, overflowWrap: "anywhere",
   },
-  heading: { margin: 0, fontSize: 15 },
+  heading: { margin: 0, fontSize: "0.875rem", fontWeight: 600 },
   activity: { margin: 0, paddingInlineStart: 18 },
 });

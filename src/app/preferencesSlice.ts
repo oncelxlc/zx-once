@@ -10,6 +10,9 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 function isTheme(value: unknown): value is Theme {
   return value === "light" || value === "dark" || value === "system";
 }
+function isPercent(value: unknown): value is number {
+  return typeof value === "number" && Number.isInteger(value) && value >= 0 && value <= 100;
+}
 function isIdList(value: unknown): value is NavId[] {
   return Array.isArray(value) && value.every(isNavId) && new Set(value).size === value.length;
 }
@@ -18,7 +21,7 @@ function isGroup(value: unknown): value is NavGroup {
     && typeof value.title === "string" && Boolean(value.title.trim()) && isIdList(value.items)
     && typeof value.hidden === "boolean";
 }
-function isPreferences(value: unknown): value is Preferences {
+function hasSavedNavigation(value: unknown): value is Omit<Preferences, "translucency"> {
   if (!isRecord(value) || !isTheme(value.theme)
     || (value.sidebar !== "auto" && value.sidebar !== "expanded" && value.sidebar !== "collapsed")
     || !isIdList(value.hidden) || !isIdList(value.pins)
@@ -33,9 +36,17 @@ function isPreferences(value: unknown): value is Preferences {
 
 function load(): Preferences {
   const saved = readPreference(storageKey);
-  if (!isPreferences(saved)) {
+  const translucency = { ...defaults.translucency };
+  if (isRecord(saved) && isRecord(saved.translucency)) {
+    const effect = saved.translucency;
+    // Older versions defaulted each missing bar to on. Only three explicit opt-outs turn the frame off.
+    translucency.enabled = typeof effect.enabled === "boolean" ? effect.enabled
+      : [effect.titlebar, effect.navigation, effect.toolbar].some(bar => bar !== false);
+    if (isPercent(effect.percent)) translucency.percent = effect.percent;
+  }
+  if (!hasSavedNavigation(saved)) {
     // The first-paint script in index.html already applied a valid theme independently of navigation data.
-    return isRecord(saved) && isTheme(saved.theme) ? { ...defaults, theme: saved.theme } : defaults;
+    return { ...defaults, translucency, theme: isRecord(saved) && isTheme(saved.theme) ? saved.theme : defaults.theme };
   }
   // Older preferences also stored a collapsed flag on each group.
   const groups = saved.groups.map(({ id, title, items, hidden }) => ({ id, title, items, hidden }));
@@ -43,7 +54,7 @@ function load(): Preferences {
     const workbench = groups.find(group => group.id === "workbench") ?? groups[0];
     workbench.items.push("island");
   }
-  return { ...saved, sidebar: saved.sidebar === "auto" ? defaults.sidebar : saved.sidebar, groups };
+  return { ...saved, translucency, sidebar: saved.sidebar === "auto" ? defaults.sidebar : saved.sidebar, groups };
 }
 
 export function persistPreferences(value: Preferences) {
@@ -55,6 +66,12 @@ const preferences = createSlice({
   initialState: load,
   reducers: {
     setTheme(state, { payload }: PayloadAction<Theme>) { state.theme = payload; },
+    setTranslucency(state, { payload }: PayloadAction<boolean>) {
+      state.translucency.enabled = payload;
+    },
+    setTransparencyPercent(state, { payload }: PayloadAction<number>) {
+      if (isPercent(payload)) state.translucency.percent = payload;
+    },
     setSidebar(state, { payload }: PayloadAction<Preferences["sidebar"]>) { state.sidebar = payload; },
     toggleHidden(state, { payload }: PayloadAction<NavId>) {
       state.hidden = state.hidden.includes(payload) ? state.hidden.filter(id => id !== payload) : [...state.hidden, payload];
@@ -97,6 +114,6 @@ const preferences = createSlice({
   },
 });
 
-export const { setTheme, setSidebar, toggleHidden, togglePin, addGroup, renameGroup,
+export const { setTheme, setTranslucency, setTransparencyPercent, setSidebar, toggleHidden, togglePin, addGroup, renameGroup,
   toggleGroupVisibility, moveGroup, moveItem, resetNavigation } = preferences.actions;
 export const preferencesReducer = preferences.reducer;

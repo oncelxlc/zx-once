@@ -128,7 +128,7 @@ export function ActivityFeed() {
 
 const s = stylex.create({
   list: { listStyle: "none", padding: 0, margin: 0 },
-  more: { display: "inline-flex", alignItems: "center", gap: 2, fontSize: 12 },
+  more: { display: "inline-flex", alignItems: "center", gap: 2, fontSize: "0.75rem" },
   line: {
     display: "grid", gridTemplateColumns: "minmax(0, 1fr) auto", alignItems: "center", gap: 12, paddingBlock: 8,
     textDecoration: "none", color: "var(--card-foreground)", backgroundColor: { default: "transparent", ":hover": "var(--background)" },
@@ -136,6 +136,6 @@ const s = stylex.create({
   lead: { display: "grid", gap: 3, minWidth: 0, overflowWrap: "anywhere" },
   projectName: { color: "var(--card-foreground)", textDecoration: { default: "none", ":hover": "underline" } },
   gitState: { display: "grid", justifyItems: "end", gap: 3, minWidth: 0 },
-  name: { display: "flex", alignItems: "center", gap: 6, fontWeight: 580, fontSize: 14 },
-  detail: { color: "var(--muted-foreground)", fontSize: 12 },
+  name: { display: "flex", alignItems: "center", gap: 6, fontWeight: 580 },
+  detail: { color: "var(--muted-foreground)", fontSize: "0.75rem" },
 });

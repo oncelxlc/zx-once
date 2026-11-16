@@ -162,7 +162,35 @@
   }
   body {
     @apply bg-background text-foreground;
-    font: 14px/1.5 Inter, "Segoe UI Variable", "Segoe UI", "Microsoft YaHei", sans-serif;
+    font: 0.875rem/1.5 Inter, "Segoe UI Variable", "Segoe UI", "Microsoft YaHei", sans-serif;
+  }
+}
+
+[data-slot="workbench-header"] {
+  background-color: var(--background);
+}
+
+@media (forced-colors: none) and (not (prefers-reduced-transparency: reduce)) {
+  /* A browser tab provides its own backing behind the entire frame, including the corner cutouts. */
+  :root[data-translucent="true"]:not([data-native-backdrop]) body {
+    background-color: color-mix(in srgb, var(--sidebar) 76%, var(--primary));
+  }
+  :root[data-translucent="true"]:not([data-native-backdrop]) [data-slot="sidebar-wrapper"] {
+    background-color: color-mix(in srgb, var(--sidebar), transparent var(--frame-transparency, 0%));
+  }
+
+  /* The native window tints the caption and client area together. A second fill would leave seams. */
+  :root[data-translucent="true"][data-native-backdrop="true"],
+  :root[data-translucent="true"][data-native-backdrop="true"] body,
+  :root[data-translucent="true"][data-native-backdrop="true"] [data-slot="sidebar-wrapper"],
+  :root[data-translucent="true"] [data-slot="sidebar-inner"] {
+    background-color: transparent;
+  }
+
+  /* The portalled drawer covers page text, so keep its own surface legible at every setting. */
+  :root[data-translucent="true"]:not([data-native-backdrop="false"]) [data-sidebar="sidebar"][data-mobile="true"] {
+    background-color: color-mix(in srgb, var(--sidebar), transparent calc(var(--frame-transparency, 0%) * 0.16));
+    backdrop-filter: blur(14px);
   }
 }
 

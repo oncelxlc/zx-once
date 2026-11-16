@@ -25,6 +25,7 @@ serde = { version = "1", features = ["derive", "rc"] }
 serde_json = "1"
 tauri = { version = "2", features = ["tray-icon"] }
 windows = { version = "0.61", features = [
+    "UI_ViewManagement",
     "Graphics_Imaging",
     "Media_Control",
     "Storage_Streams",

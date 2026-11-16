@@ -14,9 +14,9 @@ export { Dialog } from "./WorkbenchDialog";
 
 export function Panel({ title, action, children, id }: { title: ReactNode; action?: ReactNode; children: ReactNode; id?: string }) {
   const heading = useId();
-  return <Card role="region" id={id} aria-labelledby={heading} className="min-w-0 shrink-0 gap-0 py-0 ring-0">
-    <CardHeader className="min-h-[45px] items-center pt-2">
-      <CardTitle id={heading} role="heading" aria-level={2} className="flex min-w-0 items-center gap-2">{title}</CardTitle>
+  return <Card size="sm" role="region" id={id} aria-labelledby={heading} className="min-w-0 shrink-0 gap-0 py-0 ring-0">
+    <CardHeader className="min-h-10 items-center pt-2">
+      <CardTitle id={heading} role="heading" aria-level={2} className="flex min-w-0 items-center gap-2 font-semibold">{title}</CardTitle>
       {action && <CardAction className="row-span-1 self-center">{action}</CardAction>}
     </CardHeader>
     <CardContent className="min-w-0 pt-1 pb-3">{children}</CardContent>

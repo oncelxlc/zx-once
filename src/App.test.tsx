@@ -133,7 +133,7 @@ it("opens island settings directly from the main navigation", async () => {
   expect(screen.getByRole("link", { name: "设置" }).hasAttribute("aria-current")).toBe(false);
 });
 
-it("keeps the header and section links outside the scrolling content as pages change", async () => {
+it("keeps the title, action and section navigation in the header as pages change", async () => {
   renderAt("#/projects");
   const primary = within(screen.getByRole("navigation", { name: "主导航" }));
   const footer = screen.getByRole("contentinfo", { name: "工作台状态" });
@@ -143,8 +143,10 @@ it("keeps the header and section links outside the scrolling content as pages ch
 
   fireEvent.click(primary.getByRole("link", { name: "Git 工作区" }));
   const content = await screen.findByRole("main", { name: "Git 工作区" });
-  const title = screen.getByRole("heading", { name: "Git 工作区", level: 1 });
-  const sections = screen.getByRole("navigation", { name: "Git 仓库视图" });
+  const header = within(screen.getByRole("banner"));
+  const title = header.getByRole("heading", { name: "Git 工作区", level: 1 });
+  const sections = header.getByRole("navigation", { name: "Git 仓库视图" });
+  expect(header.getByRole("button", { name: "克隆仓库" })).toBeTruthy();
   expect(content.contains(sections)).toBe(false);
   expect(content.contains(title)).toBe(false);
   content.scrollTop = 400;
@@ -170,9 +172,47 @@ it("adds the island to an existing customized navigation without resetting prefe
     group.id === "workbench" ? { ...group, title: "常用" } : group);
   const expected = { ...defaults, sidebar: "collapsed", groups, pins: ["projects"] };
   const previous = groups.map(group => ({ ...group, items: group.items.filter(id => id !== "island") }));
-  localStorage.setItem("zx-once.workbench.preferences.v1", JSON.stringify({ ...expected, groups: previous }));
+  localStorage.setItem("zx-once.workbench.preferences.v1", JSON.stringify({ ...expected, translucency: undefined, groups: previous }));
   const store = renderAt("#/");
   expect(store.getState().preferences).toEqual(expected);
+});
+
+it.each([
+  { saved: { titlebar: false, navigation: false, toolbar: false }, expected: { enabled: false, percent: 65 } },
+  { saved: { titlebar: false, navigation: false }, expected: { enabled: true, percent: 65 } },
+  { saved: { enabled: false, percent: 101 }, expected: { enabled: false, percent: 65 } },
+  { saved: { enabled: true, percent: 0 }, expected: { enabled: true, percent: 0 } },
+  { saved: { enabled: false, percent: 100 }, expected: { enabled: false, percent: 100 } },
+])("restores frame translucency from $saved", ({ saved, expected }) => {
+  mockLocalStorage();
+  localStorage.setItem("zx-once.workbench.preferences.v1", JSON.stringify({ ...defaults, translucency: saved }));
+  expect(createAppStore().getState().preferences.translucency).toEqual(expected);
+});
+
+it("keeps the frame transparency percentage when disabled and after reload", async ({ onTestFinished }) => {
+  mockLocalStorage();
+  // Base UI exposes the thumb once it measures the track, which jsdom leaves at zero width.
+  const measure = vi.spyOn(HTMLElement.prototype, "getBoundingClientRect").mockReturnValue(new DOMRect(0, 0, 180, 12));
+  onTestFinished(() => measure.mockRestore());
+  localStorage.setItem("zx-once.workbench.preferences.v1", JSON.stringify({
+    ...defaults, theme: "dark", pins: ["projects"], translucency: { titlebar: false, navigation: true, toolbar: false },
+  }));
+  const store = renderAt("#/settings/appearance");
+  const panel = within(await screen.findByRole("region", { name: "半透明效果" }));
+  const slider = panel.getByRole<HTMLInputElement>("slider", { name: "外框透明度" });
+  expect(panel.getAllByRole("checkbox")).toHaveLength(1);
+  expect(slider.getAttribute("aria-valuetext")).toBe("65%");
+  fireEvent.keyDown(slider, { key: "ArrowRight" });
+  expect(store.getState().preferences.translucency).toEqual({ enabled: true, percent: 66 });
+  fireEvent.click(panel.getByRole("checkbox", { name: "启用半透明效果", checked: true }));
+  expect(slider.disabled).toBe(true);
+  cleanup();
+  const restored = renderAt("#/settings/appearance");
+  expect(restored.getState().preferences).toMatchObject({
+    theme: "dark", pins: ["projects"], translucency: { enabled: false, percent: 66 },
+  });
+  fireEvent.click(await screen.findByRole("checkbox", { name: "启用半透明效果", checked: false }));
+  expect(screen.getByRole("slider", { name: "外框透明度" }).getAttribute("aria-valuetext")).toBe("66%");
 });
 
 it.each([

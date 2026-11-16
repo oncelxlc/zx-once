@@ -41,6 +41,8 @@ export type Theme = "system" | "light" | "dark";
  */
 export interface Preferences {
   theme: Theme;
+  /** Percent is the backdrop's contribution (0–100), retained while the effect is disabled. */
+  translucency: { enabled: boolean; percent: number };
   sidebar: "auto" | "expanded" | "collapsed";
   groups: NavGroup[];
   hidden: NavId[];
@@ -49,6 +51,7 @@ export interface Preferences {
 
 export const defaults: Preferences = {
   theme: "system",
+  translucency: { enabled: true, percent: 65 },
   sidebar: "collapsed",
   groups: [
     { id: "workbench", title: "工作台", items: ["overview", "recent", "activity", "island"], hidden: false },

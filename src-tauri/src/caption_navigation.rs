@@ -1,3 +1,4 @@
+mod layer;
 mod layout;
 mod paint;
 
@@ -8,7 +9,7 @@ use windows_sys::{
     core::w,
     Win32::{
         Foundation::{HWND, LPARAM, LRESULT, WPARAM},
-        Graphics::Gdi::{GetSysColor, InvalidateRect, COLOR_ACTIVECAPTION, COLOR_CAPTIONTEXT},
+        Graphics::Gdi::{GetSysColor, COLOR_ACTIVECAPTION, COLOR_CAPTIONTEXT},
         UI::{
             Controls::*,
             Shell::{DefSubclassProc, GetWindowSubclass, RemoveWindowSubclass, SetWindowSubclass},
@@ -167,11 +168,12 @@ pub(super) fn set_colors(
     window: WebviewWindow,
     hwnd: HWND,
     colors: [u32; 2],
+    backdrop_active: bool,
 ) -> Result<(), String> {
     unsafe {
         let bar = Toolbar::install(window, hwnd)?;
         bar.colors.set(colors);
-        InvalidateRect(bar.hwnd, null_mut(), 0);
+        layer::configure(bar.hwnd, backdrop_active, colors[1])?;
     }
     Ok(())
 }
@@ -244,7 +246,13 @@ unsafe extern "system" fn owner_proc(
         WM_NOTIFY if lp != 0 => {
             let header = &*(lp as *const NMHDR);
             if header.hwndFrom == bar.hwnd && header.code == NM_CUSTOMDRAW {
-                return paint::custom_draw(&*(lp as *const NMCUSTOMDRAW), bar.colors.get());
+                // On glass the same native states paint an opacity mask for both glyphs and feedback.
+                let colors = if layer::enabled(bar.hwnd) {
+                    [0, 0xffffff]
+                } else {
+                    bar.colors.get()
+                };
+                return paint::custom_draw(&*(lp as *const NMCUSTOMDRAW), colors);
             }
         }
         WM_NCDESTROY => {
